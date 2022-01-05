@@ -5,6 +5,11 @@
 //  Created by yu fai on 27/11/2021.
 //
 
+//https://github.com/firebase/firebase-ios-sdk/blob/master/SwiftPackageManager.md
+
+//2020 FirebaseCrashlytics solution
+//https://stackoverflow.com/questions/60821249/ios-and-firebasecrashlytics
+
 import SwiftUI
 import Firebase
 
@@ -12,6 +17,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     // MARK: - Methods
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        
+        
         return true
     }
 }
@@ -24,12 +32,14 @@ struct SwiftUIFirebaseChatApp: App {
     
     // MARK: - Life Cycle
     init() {
-        FirebaseApp.configure()
+        
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationView{
+                ChatAppNavigationView()
+            }
         }
     }
 }
