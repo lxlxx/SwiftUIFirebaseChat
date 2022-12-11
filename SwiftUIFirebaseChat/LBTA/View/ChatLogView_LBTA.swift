@@ -1,0 +1,411 @@
+//
+//  ChatLogView_LBTA.swift
+//  SwiftUIFirebaseChat
+//
+//  Created by yu fai on 18/10/2022.
+//
+//https://stackoverflow.com/questions/57727107/how-to-get-the-iphones-screen-width-in-swiftui
+//
+//https://stackoverflow.com/questions/69217703/swiftui-how-can-i-use-observedobject-or-environmentobject-to-store-geometryrea
+//
+//https://stackoverflow.com/questions/59083437/setting-view-frame-based-on-geometryreader-located-inside-that-view-in-swiftui
+
+// Sharing data across tabs using @EnvironmentObject – Hot Prospects SwiftUI Tutorial 11/18
+// https://www.youtube.com/watch?v=e2lQtUdK1uI&ab_channel=PaulHudson
+
+// https://stackoverflow.com/questions/60511185/how-can-i-setup-firebase-to-observe-only-new-data
+
+import SwiftUI
+import Firebase
+import SDWebImageSwiftUI
+
+struct ChatMessage {
+    let fromID, toID, text: String
+    
+    init(data: [String: Any]) {
+        self.fromID = data[GlobalString.fromID] as? String ?? ""
+        self.toID = data[GlobalString.toID] as? String ?? ""
+        self.text = data[GlobalString.text] as? String ?? ""
+    }
+}
+
+class ChatLogViewModel_LBTA: ObservableObject {
+    @Published var chatText = ""
+    
+    @Published var chatMessage: [Message] = []
+    
+    let chatUser: ChatUser?
+    
+//    var chatLogRef: DatabaseReference?
+    
+    init(chatUser: ChatUser?) {
+//        self.chatMessage = []
+        self.chatUser = chatUser
+        
+        fetchingMessage()
+    }
+    
+    deinit {
+        printLog("deinit")
+    }
+    
+    
+    // MARK: fetch message with partner func
+    
+    func removeAllChatMessages() {
+        chatMessage.removeAll()
+    }
+    func fetchingMessage() {
+        guard let opponentID = chatUser?.uid else { return }
+        
+        removeAllChatMessages()
+        
+        FirebaseManager.shared.fetchingMessageByOpponentID(opponentID: opponentID){
+            [ weak weakSelf = self]  msg in
+            weakSelf?.appendMessage(msg)
+        }
+    }
+    
+    func appendMessage(_ dictionary: [String: AnyObject] ) {
+        let messageIDCount = chatMessage.count + 1
+        chatMessage.append(Message(dictionary, id: messageIDCount))
+    }
+    
+    // MARK: send func
+    
+    func handlingSendChatMsg() {
+        guard let toID = chatUser?.uid else { return }
+        
+        FirebaseManager.shared.handlingSend(opponentID: toID, chatText: chatText) {
+            self.chatText = ""
+        }
+    }
+}
+
+
+struct ChatLogView_LBTA: View {
+    
+    // MARK: - Data
+    
+    private let scrollViewBottomID = "scrollViewBottom"
+    
+    @ObservedObject var vm: ChatLogViewModel_LBTA
+    
+    let chatUser: ChatUser?
+    
+    // MARK: - Func
+    
+    // MARK: - View
+    
+    var body: some View {
+        GeometryReader { proxy in
+            VStack {
+                if #available(iOS 15.0, *) {
+                    messageView
+                        .safeAreaInset(edge: .bottom) {
+                            messageInputView
+                        }
+                } else {
+                    messageView
+                    messageInputView
+                }
+                
+            }
+            .environment(\.mainWindowSize, proxy.size)
+            .onDisappear {
+//                vm.chatLogRef?.removeAllObservers()
+                
+            }
+            
+        }
+        
+    }
+    
+    private var messageView: some View {
+        VStack {
+            ScrollView {
+                ScrollViewReader { value in
+                    VStack {
+                        ForEach(vm.chatMessage) { message in
+                            ChatLogViewRow(content: message)
+                        }
+                        .onAppear(){
+                            scrollToButtom(proxy: value)
+                        }
+                        
+                        HStack { Spacer() }
+                            .id(scrollViewBottomID)
+                    }
+                    .onChange(of: vm.chatMessage.count) { _ in
+                        withAnimation(.easeOut(duration: 0.5)) {
+                            scrollToButtom(proxy: value)
+                        }
+                    }
+                }
+            }
+            .background(Color(.init(white: 0.95, alpha: 1)))
+            .navigationTitle("\(chatUser?.name ?? "")")
+            
+        }
+    }
+    
+    private func scrollToButtom(proxy: ScrollViewProxy) {
+        proxy.scrollTo(scrollViewBottomID, anchor: .bottom)
+    }
+    
+    private var messageInputView: some View {
+        HStack(spacing: 16) {
+            Image(systemName: "photo.on.rectangle")
+                .font(.system(size: 24))
+                .foregroundColor(Color(.darkGray))
+            TextField("message", text: $vm.chatText)
+            Button {
+                vm.handlingSendChatMsg()
+            } label: {
+                Text("Send")
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color.blue)
+            .cornerRadius(8)
+            
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground).ignoresSafeArea())
+    }
+    
+    
+    // MARK: - Life Cycle
+    
+    init(chatUser: ChatUser?, vm: ChatLogViewModel_LBTA) {
+        self.chatUser = chatUser
+        self.vm = vm
+    }
+}
+
+fileprivate struct ChatLogViewRow: View {
+    var content: Message
+    
+    var body: some View {
+        HStack {
+            if content.messageFromCurrentUser() {
+                Spacer()
+            }
+            
+            HStack {
+//                ChatLogViewRow_Image()
+//                ChatLogViewRow_Image(parentGeometry: geo)
+                Text("\(content.text ?? "")")
+                    .foregroundColor(content.messageFromCurrentUser() ? .white : .black)
+            }
+            .padding()
+            .background(content.messageFromCurrentUser() ? Color.blue : Color.white)
+            .cornerRadius(16)
+            
+            if !content.messageFromCurrentUser() {
+                Spacer()
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+    init(content: Message) {
+        self.content = content
+    }
+}
+
+struct ChatLogViewRow_Image: View {
+    
+    // MARK: - Data
+    private let defaultPic = "IMG_0001"
+    private var picURL: String?
+    
+//    private var screenSzie = UIScreen.main.bounds
+
+    @Environment(\.mainWindowSize) var mainWindowSize
+    
+    @State private var fullScrennPicShowed = false
+    
+    // MARK: - View
+    var body: some View {
+        VStack {
+            Button {
+                self.fullScrennPicShowed.toggle()
+            } label: {
+                ZStack {
+                    imageBackgroundColor
+                    chatLogViewRowImage
+                }
+            }
+//            Text("width: \(mainWindowSize.width), height: \(mainWindowSize.height)")
+        }
+        .fullScreenCover(isPresented: $fullScrennPicShowed) {
+            FullScreenView {
+                Image(defaultPic)
+                    .resize_Fit_Clipped()
+                
+            }
+//            Text("\(screenSzie.height) \(screenSzie.width)")
+        }
+    }
+    
+    var imageBackgroundColor: some View {
+        Color(.init(white:0, alpha: 0.05))
+            .frame(width: 150
+                   , height: 100)
+            .cornerRadius(44)
+                .overlay(RoundedRectangle(cornerRadius: 44)
+                    .stroke(Color(.label), lineWidth: 1))
+                .shadow(radius: 5)
+//            .if(fullScrennPicShowed) { view in
+//                view.ignoresSafeArea()
+//            }
+//            .if(!fullScrennPicShowed){ view in
+//                view.cornerRadius(44)
+//                    .overlay(RoundedRectangle(cornerRadius: 44)
+//                        .stroke(Color(.label), lineWidth: 1))
+//                    .shadow(radius: 5)
+//            }
+    }
+    
+    var chatLogViewRowImage: some View {
+        Image(defaultPic)
+            .resize_Fit_Clipped()
+            .frame(width: 150
+                   , height: 100)
+//            .if(fullScrennPicShowed, transform: { image in
+//                image
+//                    .cornerRadius(44)
+//                    .overlay(RoundedRectangle(cornerRadius: 44)
+//                        .stroke(Color(.label), lineWidth: 1))
+//                    .shadow(radius: 5)
+//            })
+    }
+    
+
+    
+    // MARK: - Life Cycle
+    
+//    init(picURL: String? = nil, parentGeometry: GeometryProxy, fullScrennPic: Bool = false) {
+//        self.picURL = picURL
+//        self.parentGeometry = parentGeometry
+//        self.fullScrennPic = fullScrennPic
+//    }
+}
+
+
+//https://stackoverflow.com/questions/56938805/how-to-pass-one-swiftui-view-as-a-variable-to-another-view-struct
+//struct ContainerView<Content: View>: View {
+//    @ViewBuilder var content: Content
+//
+//    var body: some View {
+//        content
+//    }
+//}
+
+struct FullScreenView<Content: View>: View {
+    
+    // MARK: - Data
+    @Environment(\.presentationMode) var presentationMode
+    
+    @ViewBuilder var contentView: Content
+    
+    var dismissFullScreenByClickingContentView = false
+    
+    // MARK: - Func
+    
+    private func dismissView() {
+        presentationMode.wrappedValue.dismiss()
+    }
+    
+    // MARK: - View
+    var body: some View {
+        
+        VStack {
+            ZStack {
+                Color.alpha0_05
+                    .onTapGesture {
+                        dismissView()
+                    }
+                contentView
+                    .onTapGesture {
+                        if dismissFullScreenByClickingContentView {
+                            dismissView()
+                        }
+                    }
+                
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .edgesIgnoringSafeArea(.all)
+        
+    }
+    
+    // MARK: - Life Cycle
+    
+
+}
+
+struct ChatLogView_LBTA_Previews: PreviewProvider {
+    static var previews: some View {
+//        GeometryReader { geo in
+//            ChatLogViewRow_Image(parentGeometry: geo)
+//        }
+        let temp = ["name": "joel"] as [String: AnyObject]
+
+        NavigationView {
+            let chatOpponent = ChatUser(uid: "J057oK0WKLMQFWzz8G8DEvGSpP42", dictionary: temp)
+            let vm = ChatLogViewModel_LBTA(chatUser: chatOpponent)
+            ChatLogView_LBTA(chatUser: chatOpponent, vm: vm)
+        }
+            
+        
+    }
+}
+
+
+
+
+private struct MainWindowSizeKey: EnvironmentKey {
+    static let defaultValue: CGSize = .zero
+}
+
+extension EnvironmentValues {
+    var mainWindowSize: CGSize {
+        get { self[MainWindowSizeKey.self] }
+        set { self[MainWindowSizeKey.self] = newValue }
+    }
+}
+
+extension Image {
+    func resize_Fit_Clipped() -> some View {
+        self
+            .resizable()
+            .scaledToFit()
+            .clipped()
+        
+    }
+}
+
+extension Color {
+    static let alpha0_05 = Color(.init(white:0, alpha: 0.05))
+}
+
+
+// https://www.avanderlee.com/swiftui/conditional-view-modifier/
+extension View {
+    /// Applies the given transform if the given condition evaluates to `true`.
+    /// - Parameters:
+    ///   - condition: The condition to evaluate.
+    ///   - transform: The transform to apply to the source `View`.
+    /// - Returns: Either the original `View` or the modified `View` if the condition is `true`.
+    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}

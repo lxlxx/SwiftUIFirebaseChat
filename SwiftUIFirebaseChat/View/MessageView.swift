@@ -52,8 +52,8 @@ struct MessageView: View {
         }
         .navigationBarTitle("Home", displayMode: .inline)
         .navigationBarItems(
-            leading: signoutButton
-            , trailing: newChatMessageButton
+            leading: signoutButton,
+            trailing: newChatMessageButton
         )
         .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $show) {
@@ -83,7 +83,8 @@ struct MessageView: View {
 struct Message_Previews: PreviewProvider {
     
     static var previews: some View {
-        MessageView()
+//        MessageView()
+        MessageView().environmentObject(MessageObserver())
     }
 }
 
@@ -126,7 +127,7 @@ struct RecentCellView: View {
 }
 
 class MessageObserver: ObservableObject {
-    @Published var recents = [Recent]()
+    @Published var recents = [RecentMessage]()
     
     var recentMessage = [String: Message]()
     
@@ -136,19 +137,19 @@ class MessageObserver: ObservableObject {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
         let ref = Database.database().reference()
-        let usersRef = ref.child(GlobalString.userMessage).child(uid)
+        let usersRef = ref.child(GlobalString.userMessageDir).child(uid)
         
         usersRef.observe(.childAdded) { snapshot in
             let chatPartnersID = snapshot.key
             let chatPartnersmessagesRef = Database.database().reference()
-                .child(GlobalString.userMessage)
+                .child(GlobalString.userMessageDir)
                 .child(uid)
                 .child(chatPartnersID)
             
             chatPartnersmessagesRef.observe(.childAdded, with: { (snapshot) in
                 let messageID = snapshot.key
                 let messagesRef = Database.database().reference()
-                    .child(GlobalString.message)
+                    .child(GlobalString.messageDir)
                     .child(messageID)
                 
                 self.fetchMessageContentByID(messagesRef)
@@ -181,7 +182,7 @@ class MessageObserver: ObservableObject {
             fetchUserNameAndPic(msg: msg) { name, pic in
                 let id = self.recents.count + 1
                 guard let msgContent = msg.text, let msgTime = msg.timestamp else { return }
-                self.recents.append(Recent(id: id,
+                self.recents.append(RecentMessage(id: id,
                                            uid:msg.chatPartnerID(),
                                            name: name,
                                            pic: pic,
@@ -209,17 +210,4 @@ class MessageObserver: ObservableObject {
     }
 }
 
-struct Recent: Identifiable {
-    var id: Int
-    
-    var uid: String
-    
-    var name: String
-    var pic: String
-    
-    var lastmsg: String
-    
-    var timestamp: NSNumber
-    
-}
 

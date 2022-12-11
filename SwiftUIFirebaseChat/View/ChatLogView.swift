@@ -76,8 +76,8 @@ struct ChatLogView: View {
     
     func fetchChatPartnerMessages(){
         guard let myID = Auth.auth().currentUser?.uid else { return }
-        let userMessageDir = Database.database().reference().child(GlobalString.userMessage)
-        let messageDir = Database.database().reference().child(GlobalString.message)
+        let userMessageDir = Database.database().reference().child(GlobalString.userMessageDir)
+        let messageDir = Database.database().reference().child(GlobalString.messageDir)
         
         let ref = userMessageDir.child(myID).child(uid)
         ref.observe(.childAdded, with: { (snapshot) in
@@ -128,7 +128,7 @@ struct ChatLogView: View {
             }
             
             guard let messageID = childRef.key else { return }
-            let userMessageDir = Database.database().reference().child(GlobalString.userMessage)
+            let userMessageDir = Database.database().reference().child(GlobalString.userMessageDir)
             
             let fromUserIDMessageRef = userMessageDir.child(fromUserID).child(toUserID)
             let toUserIDMessageRef = userMessageDir.child(toUserID).child(fromUserID)
@@ -150,35 +150,6 @@ struct ChatLogView: View {
 }
 
 
-struct Message: Identifiable {
-    
-    var id: Int
-    
-    var fromID: String?
-    var timestamp: NSNumber?
-    var toID: String?
-    var text: String?
-    
-    init(_ dict:[String: Any], id: Int) {
-        self.id = id
-        fromID = dict["fromID"] as? String
-        text = dict["text"] as? String
-        timestamp = dict["timestamp"] as? NSNumber
-        toID = dict["toID"] as? String
-
-    }
-    
-    func messageFromCurrentUser() -> Bool {
-        guard let uid = Auth.auth().currentUser?.uid else { return false }
-        return fromID == uid ? true : false
-    }
-    
-    func chatPartnerID() -> String {
-        return fromID == Auth.auth().currentUser?.uid ? toID! : fromID!
-    }
-}
-
-
 
 struct ChatBubble: Shape {
     var msg: Message
@@ -195,13 +166,6 @@ struct ChatBubble: Shape {
 
 
 
-
-
-
-
-
-
-
 struct ChatLogView_Previews: PreviewProvider {
     
     struct BindingHolder: View {
@@ -212,12 +176,20 @@ struct ChatLogView_Previews: PreviewProvider {
         @State var pic = ""
         
         var body: some View {
-            ChatLogView(chatIsShow: $show, name: $uid, pic: $name, uid: $pic)
+            ChatLogView(chatIsShow: $show, name: $name, pic: $pic, uid: $uid)
         }
     }
     
     static var previews: some View {
-        BindingHolder()
+//        BindingHolder()
+        ZStack {
+//            Text("hello word")
+            ChatLogView(chatIsShow: Binding.constant(true),
+                        name: Binding.constant("test"),
+                        pic: Binding.constant(""),
+                        uid: Binding.constant("ovKDAisMPfhoYHhwDuUUXGcLTtP2"))
+
+        }
     }
 }
 

@@ -10,6 +10,22 @@
 //2020 FirebaseCrashlytics solution
 //https://stackoverflow.com/questions/60821249/ios-and-firebasecrashlytics
 
+//source
+//https://www.youtube.com/playlist?list=PLimqJDzPI-H827m9Mulmf1_kHCdOII62v
+//MVVM
+//option value & unwrap 
+//UI reuse
+//struct message reuse
+//inversion of control vs dependency injection
+//AOP
+//firebase manager
+//combine await GCD / concurrency
+//ui unit test
+//xcode doc
+//network keep checking
+//crashlytics + debug
+//swift doc (java doc)
+
 import SwiftUI
 import Firebase
 
@@ -38,7 +54,9 @@ struct SwiftUIFirebaseChatApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationView{
-                ChatAppNavigationView()
+                MainMessageView_LBTA()
+//                LoginAndRegistration_LBTA()
+//                ChatAppNavigationView()
             }
         }
     }
