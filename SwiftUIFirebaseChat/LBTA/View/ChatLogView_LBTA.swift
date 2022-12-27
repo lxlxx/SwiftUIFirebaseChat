@@ -46,7 +46,7 @@ class ChatLogViewModel_LBTA: ObservableObject {
     }
     
     deinit {
-        printLog("deinit")
+//        printLog("deinit")
     }
     
     
@@ -60,7 +60,7 @@ class ChatLogViewModel_LBTA: ObservableObject {
         
         removeAllChatMessages()
         
-        FirebaseManager.shared.fetchingMessageByOpponentID(opponentID: opponentID){
+        FirebaseManager.shared.fetchingAllMessageByOpponentID(opponentID: opponentID){
             [ weak weakSelf = self]  msg in
             weakSelf?.appendMessage(msg)
         }
@@ -76,7 +76,7 @@ class ChatLogViewModel_LBTA: ObservableObject {
     func handlingSendChatMsg() {
         guard let toID = chatUser?.uid else { return }
         
-        FirebaseManager.shared.handlingSend(opponentID: toID, chatText: chatText) {
+        FirebaseManager.shared.sendingMessage(opponentID: toID, chatText: chatText) {
             self.chatText = ""
         }
     }

@@ -8,11 +8,14 @@
 import SwiftUI
 import Firebase
 import SDWebImageSwiftUI
-
+import Combine
 
 // https://stackoverflow.com/questions/28727845/find-an-object-in-array
 
+
 class MainMessageViewModel: ObservableObject {
+    
+    // MARK: - Data
     
     @Published var errorMessage = ""
     @Published var currentUser: ChatUser?
@@ -21,31 +24,55 @@ class MainMessageViewModel: ObservableObject {
     @Published var recentOpponentMessage = [RecentMessage_Class]() {
         didSet {
             //sortting in here always crash the xcode, dont know why - 20221206
-//            recents.sort()
+            //            recents.sort()
         }
     }
     
     //key: value = chatPartnerID: Message
-//    var recentMessage = [String: Message]()
+    //    var recentMessage = [String: Message]()
     
     var appendRecentMessageTimer: Timer?
     
     var userRef: DatabaseReference?
+    
+    var cancellable = Set<AnyCancellable>()
+    
+    // MARK: - Life Cycle
+    
+    
     
     init() {
         DispatchQueue.main.async {
             self.isUserCurrentlyLoggedOut = FirebaseManager.shared.auth.currentUser?.uid == nil
         }
         
-        fetchCurrentMessage()
+        fetchCurrentMessage_Combine()
         
         fetchingCurrentUserInfo()
+        
+        
+//        fetchCurrentMessage_Combine()
+        
+//        FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID_Combine()
+//            .sink { [weak self] opponentID in
+//                self?.errorMessage += opponentID
+//            }.store(in: &cancellable)
     }
     
     deinit {
-        printLog("deinit")
+//        printLog("deinit")
     }
     
+    // MARK: - Func
+
+    func fetchCurrentMessage_Combine(){
+        
+        FirebaseManager.shared.fetchingAllChattingOpponentMessage()
+            .compactMap { $0 }
+            .sink { [weak self] msg in
+                self?.updatingCurrentMessage(msg: msg, oppID: msg.chatPartnerID())
+            }.store(in: &cancellable)
+    }
     
     func handlingSignOut(){
         isUserCurrentlyLoggedOut.toggle()
@@ -72,6 +99,12 @@ class MainMessageViewModel: ObservableObject {
         FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID { chattingOpponentID, message in
             self.updatingCurrentMessage(data: message, chattingOpponentID)
         }
+//        FirebaseManager.shared.fetchingAllChattingOpponentMessage()
+//            .compactMap { $0 }
+//            .sink { [weak self] msg in
+//                self?.updatingCurrentMessage(msg: msg, oppID: msg.chatPartnerID())
+//            }.store(in: &cancellable)
+        
 //        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
 //
 //        let ref = FirebaseManager.shared.database.reference()
@@ -112,6 +145,30 @@ class MainMessageViewModel: ObservableObject {
 //            }, withCancel: nil)
 //    }
     
+    func updatingCurrentMessage(msg: Message, oppID opponentUID: String){
+        var opponentLastMsg = msg
+        
+        if let opponent = self.recentOpponentMessage.first(where: { $0.uid == opponentUID })
+        {
+            let msgID = opponent.message.count
+            opponentLastMsg.id = msgID
+            opponent.message.append(opponentLastMsg)
+            
+        } else {
+            let recentMessageID = self.recentOpponentMessage.count + 1
+            guard let lastMsg = opponentLastMsg.text,
+                  let timestamp = opponentLastMsg.timestamp else { return }
+            let opponentRecentMessage = RecentMessage_Class(id: recentMessageID,
+                                                      uid:opponentUID,
+                                                      lastmsg: lastMsg,
+                                                      timestamp: timestamp)
+            opponentRecentMessage.message.append(opponentLastMsg)
+            self.recentOpponentMessage.append(opponentRecentMessage)
+            self.updatingOpponentNameAndPic(opponent: opponentRecentMessage)
+        }
+        self.recentOpponentMessage.sort()
+    }
+    
     func updatingCurrentMessage(data dictionary: [String: AnyObject], _ opponentUID: String){
         var opponentLastMsg = Message(dictionary, id: 0)
         
@@ -131,19 +188,30 @@ class MainMessageViewModel: ObservableObject {
                                                       timestamp: timestamp)
             opponentRecentMessage.message.append(opponentLastMsg)
             self.recentOpponentMessage.append(opponentRecentMessage)
-            self.updatingOpponentNameAndPic(opponentUID: opponentUID)
+            self.updatingOpponentNameAndPic(opponent: opponentRecentMessage)
         }
         self.recentOpponentMessage.sort()
     }
     
-    func updatingOpponentNameAndPic(opponentUID: String){
-        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: opponentUID) { name, pic in
-            if let index = self.recentOpponentMessage.firstIndex(where: {$0.uid == opponentUID }) {
-                let opponent = self.recentOpponentMessage[index]
-                opponent.name = name
-                opponent.pic = pic
-                self.recentOpponentMessage[index] = opponent
-            }
+    func updatingOpponentNameAndPic(opponent: RecentMessage_Class){
+        
+        FirebaseManager.shared.fetchingUserNameAndAvatar_Combine(opponent: opponent)
+            .sink { [weak self] opponent in
+                if let index = self?.recentOpponentMessage.firstIndex(where: {$0.uid == opponent.uid }) {
+                    self?.recentOpponentMessage[index] = opponent
+                }
+            }.store(in: &cancellable)
+
+
+//        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: opponentUID) { name, pic in
+//            if let index = self.recentOpponentMessage.firstIndex(where: {$0.uid == opponentUID }) {
+//                let opponent = self.recentOpponentMessage[index]
+//                opponent.name = name
+//                opponent.pic = pic
+//                self.recentOpponentMessage[index] = opponent
+//            }
+            
+            
 //            if let opponent = self.recents.first(where: { $0.uid == opponentUID }) {
 ////                DispatchQueue.main.sync { not working
 //                    opponent.name = name
@@ -155,7 +223,7 @@ class MainMessageViewModel: ObservableObject {
 // TODO: find out why without the code below the UI dont refresh
 //                self.errorMessage = ""
 //            }
-        }
+        
     }
 }
 
@@ -164,7 +232,7 @@ struct MainMessageView_LBTA: View {
     // MARK: - Data
     @State private var showingOptions = false
     
-    @ObservedObject private var vm = MainMessageViewModel()
+    @StateObject private var vm = MainMessageViewModel()
     
     @State private var newMessageScreenShowed = false
     
@@ -186,10 +254,12 @@ struct MainMessageView_LBTA: View {
     // MARK: - View
     
     var body: some View {
-        NavigationView {
+//        NavigationView {
 //            Color.red
             VStack {
                 Text("\(vm.errorMessage)")
+                    .lineLimit(10)
+                    .background(Color.red)
 
                 customNavBar
 
@@ -201,7 +271,7 @@ struct MainMessageView_LBTA: View {
                 }
             }
             .navigationBarHidden(true)
-            .edgesIgnoringSafeArea(.all)
+//            .edgesIgnoringSafeArea(.all)
 
             .overlay(
                 newMessageButton, alignment: .bottom
@@ -209,8 +279,7 @@ struct MainMessageView_LBTA: View {
             .onDisappear {
                 vm.userRef?.removeAllObservers()
             }
-        }
-//        .navigationTitle("Home")
+//        }
     }
     
     private var customNavBar: some View {
@@ -352,9 +421,11 @@ struct MainMessageView_LBTA: View {
 
 struct MainMessageView_Previews: PreviewProvider {
     static var previews: some View {
-//        Text("123")
-        MainMessageView_LBTA()
-//        MainMessageView_LBTA()
+        //        Text("123")
+        NavigationView {
+            MainMessageView_LBTA()
+        }
+        //        MainMessageView_LBTA()
 //            .preferredColorScheme(.dark)
     }
 }

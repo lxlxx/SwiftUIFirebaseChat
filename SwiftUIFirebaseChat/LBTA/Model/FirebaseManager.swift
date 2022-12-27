@@ -8,6 +8,7 @@
 import Foundation
 import Firebase
 import FirebaseStorage
+import Combine
 
 // https://stackoverflow.com/questions/31443645/simplest-way-to-throw-an-error-exception-with-a-custom-message-in-swift
 extension String: Error {}
@@ -30,12 +31,12 @@ class FirebaseManager: NSObject {
             result, err in
             if let err = err {
                 print("Failed to login user", err)
-//                throw "Failed to login user \(err)"
+                //                throw "Failed to login user \(err)"
                 return
             }
             
             print("Successfully logged in as user: \(result?.user.uid ?? "")")
-//            throw "Successfully logged in as user: \(result?.user.uid ?? "")"
+            //            throw "Successfully logged in as user: \(result?.user.uid ?? "")"
             complete()
             
         }
@@ -46,13 +47,13 @@ class FirebaseManager: NSObject {
             result, err in
             if let err = err {
                 print("Failed to create user", err)
-//                self.loginStatusMessage = "Failed to create user \(err)"
+                //                self.loginStatusMessage = "Failed to create user \(err)"
                 print(err)
                 return
             }
             
             print("Successfully create user: \(result?.user.uid ?? "")")
-//            self.loginStatusMessage = "Successfully create user: \(result?.user.uid ?? "")"
+            //            self.loginStatusMessage = "Successfully create user: \(result?.user.uid ?? "")"
             
             complete()
         }
@@ -64,22 +65,22 @@ class FirebaseManager: NSObject {
         let ref = FirebaseManager.shared.storage.reference()
             .child(GlobalString.DB_profilepics).child(uid)
         
-//        guard let imageData = imageData.jpegData(compressionQuality: 0.2) else { return }
+        //        guard let imageData = imageData.jpegData(compressionQuality: 0.2) else { return }
         
         ref.putData(imageData) { metadata, err in
             if let err = err {
-//                self.loginStatusMessage = "Failed to push image to storage \(err)"
+                //                self.loginStatusMessage = "Failed to push image to storage \(err)"
                 print(err)
                 return
             }
             
             ref.downloadURL { url, err in
                 if let err = err {
-//                    self.loginStatusMessage = "Failed to retrieve downloadURL: \(err)"
+                    //                    self.loginStatusMessage = "Failed to retrieve downloadURL: \(err)"
                     print(err)
                     return
                 }
-//                self.loginStatusMessage = "Successfully stored image with url: \(url?.absoluteString ?? "")"
+                //                self.loginStatusMessage = "Successfully stored image with url: \(url?.absoluteString ?? "")"
                 
                 guard let url = url else { return }
                 print(url.absoluteString)
@@ -115,7 +116,7 @@ class FirebaseManager: NSObject {
         
         ref.observeSingleEvent(of: .value) { snapshot, err in
             if let err = err {
-//                self.errorMessage = "err"
+                //                self.errorMessage = "err"
                 print(err)
                 return
             }
@@ -123,12 +124,140 @@ class FirebaseManager: NSObject {
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 let currentUserInfo = ChatUser(uid: uid, dictionary: dictionary)
                 complete(currentUserInfo)
-//                self.errorMessage = "\(dictionary.description)"
+                //                self.errorMessage = "\(dictionary.description)"
             } else {
-//                self.errorMessage = "snap err"
+                //                self.errorMessage = "snap err"
             }
         }
         
+    }
+    
+    var cancellable = Set<AnyCancellable>()
+    
+    
+    // https://medium.com/swlh/save-your-animation-code-from-callback-hell-with-combine-27b8a0961fa9
+    // https://www.vadimbulavin.com/asynchronous-programming-with-future-and-promise-in-swift-with-combine-framework/
+    // https://swiftrocks.com/avoiding-callback-hell-in-swift
+    // https://www.vadimbulavin.com/tag/combine/
+    // https://medium.com/@arlindaliu.dev/problem-solving-with-combine-swift-4751885fda77
+    // https://medium.com/@o-p-e-n/creating-a-custom-combine-publisher-to-work-with-firebase-fbb9048c51f6
+    // https://blog.canopas.com/use-firestore-and-firebase-realtime-database-with-combine-f7f865c0befc
+    
+    // https://stackoverflow.com/questions/72401569/show-custom-popup-view-on-top-of-view-hierarchy-swiftui
+    
+    func fetchingAllChattingOpponentMessage() -> AnyPublisher<Message?, Never> {
+        let subject = CurrentValueSubject<Message?, Never>(nil)
+        self.fetchingAllCurrentUserChattingOpponentID_Combine()
+            .compactMap { $0 }
+            .flatMap { [ unowned self ] opponentID in
+                self.fetchingAllMessageByOpponentID_Combine(opponentID: opponentID)
+            }
+            .compactMap { $0 }
+            .flatMap { [ unowned self ] msgRef in
+                self.fetchingMessageContentByMsgID_Combine(msgRef)
+            }
+            .compactMap { $0 }
+            .sink { msg in
+                subject.send(msg)
+            }
+            .store(in: &cancellable)
+        return subject.eraseToAnyPublisher()
+        
+    
+    }
+        //                .map { [ unowned self ] opponentID in
+        //                    self.fetchingAllMessageByOpponentID_Combine(opponentID: opponentID)
+        //                }
+        //                .map { [ unowned self ] msgRef in
+        //                    Task {
+        //                        await self.fetchingMessageContentByMsgID_Combine(msgRef.value)
+        //                    }
+        //                }
+        //                .sink { msg in
+        //                    Task {
+        //                        await promise(.success(("123", try msg.result.get().value)))
+        //                    }
+        //                }.store(in: &cancellable)
+            
+        
+        
+//        return Future { [unowned self] promise in
+//            if #available(iOS 15.0, *) {
+//                Task {
+//                    self.fetchingAllCurrentUserChattingOpponentID_Combine().sink { <#String#> in
+//                        <#code#>
+//                    }.store(in: &cancellable)
+//                    //                printLog("allOpponentID: \(await allOpponentID.value)")
+//
+////                    var allMessageByOpponentID = await self.fetchingAllMessageByOpponentID_Combine(opponentID: allOpponentID.value)
+////                    //            printLog("allMessageByOpponentID: \(await allMessageByOpponentID.value)")
+////                    var message = await self.fetchingMessageContentByMsgID_Combine(allMessageByOpponentID.value)
+////                    //                printLog("message: \(await message.value)")
+////                    await promise(Result.success((allOpponentID.value, message.value)))
+//
+//                }
+//
+//            }
+//
+//        }
+//    }
+    
+    func fetchingAllCurrentUserChattingOpponentID_Combine() -> AnyPublisher<String?, Never> {
+        let subject = CurrentValueSubject<String?, Never>(nil)
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return subject.eraseToAnyPublisher() }
+        
+        let ref = FirebaseManager.shared.database.reference()
+        let userRef = ref.child(GlobalString.userMessageDir).child(uid)
+        
+        userRef.observe(.childAdded) { snapshot in
+            let chattingOpponentID = snapshot.key
+            subject.send(chattingOpponentID)
+        }
+        return subject.eraseToAnyPublisher()
+        
+//        return Future { promise in
+//            guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+//
+//            let ref = FirebaseManager.shared.database.reference()
+//            let userRef = ref.child(GlobalString.userMessageDir).child(uid)
+//
+//            userRef.observe(.childAdded) { snapshot in
+//                let chattingOpponentID = snapshot.key
+//                promise(.success(chattingOpponentID))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+    }
+    
+    func fetchingAllMessageByOpponentID_Combine(opponentID: String) -> AnyPublisher<DatabaseReference?, Never> {
+        let subject = CurrentValueSubject<DatabaseReference?, Never>(nil)
+        
+        guard let myID = FirebaseManager.shared.auth.currentUser?.uid else { return subject.eraseToAnyPublisher() }
+            let toID = opponentID
+            
+            let userMessageDir = FirebaseManager.shared.database.reference().child(GlobalString.userMessageDir)
+            let messageDir = FirebaseManager.shared.database.reference().child(GlobalString.messageDir)
+            
+            userMessageDir.child(myID).child(toID).observe(.childAdded, with: { (snapshot) in
+                
+                let messageID = snapshot.key
+                let messagesRef = messageDir.child(messageID)
+                
+                subject.send(messagesRef)
+                
+            }, withCancel: nil)
+            
+        return subject.eraseToAnyPublisher()
+    }
+    
+    func fetchingMessageContentByMsgID_Combine(_ ref: DatabaseReference) -> AnyPublisher<Message?, Never> {
+        let subject = CurrentValueSubject<Message?, Never>(nil)
+        ref.observeSingleEvent(of:.value, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String: AnyObject] {
+                subject.send(Message(dictionary, id: 0))
+            }
+        })
+        return subject.eraseToAnyPublisher()
     }
     
     func fetchingAllCurrentUserChattingOpponentID(complete: @escaping (_ chattingOpponentID: String, _ message: [String: AnyObject]) -> ()){
@@ -139,7 +268,7 @@ class FirebaseManager: NSObject {
         
         userRef.observe(.childAdded) { snapshot in
             let chattingOpponentID = snapshot.key
-            self.fetchingMessageByOpponentID(opponentID: chattingOpponentID) { message in
+            self.fetchingAllMessageByOpponentID(opponentID: chattingOpponentID) { message in
                 complete(chattingOpponentID, message)
             }
 //            let chatPartnersmessagesRef = FirebaseManager.shared.database.reference()
@@ -181,7 +310,7 @@ class FirebaseManager: NSObject {
         
     }
     
-    func fetchingMessageByOpponentID(opponentID: String, complete: @escaping (_ message: [String: AnyObject]) -> ()) {
+    func fetchingAllMessageByOpponentID(opponentID: String, complete: @escaping (_ message: [String: AnyObject]) -> ()) {
         guard let myID = FirebaseManager.shared.auth.currentUser?.uid else { return }
         let toID = opponentID
         
@@ -211,25 +340,44 @@ class FirebaseManager: NSObject {
         })
     }
     
-    func fetchingUserNameAndAvatar(uid: String, complete: @escaping (_ name: String, _ pic: String) -> ()){
-        let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(uid)
-
-        ref.observe(.value, with: { (snapshot) in
-            if let value = snapshot.value as? [String: AnyObject] {
-                let name = value[GlobalString.DB_user_userName] as! String
-                guard let imageURL = value[GlobalString.DB_user_profileImageUrl] as? String else { return }
-                let pic = imageURL
-                complete(name, pic)
-                
-            }
-        }, withCancel: nil)
+//    func fetchingUserNameAndAvatar(uid: String, complete: @escaping (_ name: String, _ pic: String) -> ()){
+//        let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(uid)
+//
+//        ref.observe(.value, with: { (snapshot) in
+//            if let value = snapshot.value as? [String: AnyObject] {
+//                let name = value[GlobalString.DB_user_userName] as! String
+//                guard let imageURL = value[GlobalString.DB_user_profileImageUrl] as? String else { return }
+//                let pic = imageURL
+//                complete(name, pic)
+//
+//            }
+//        }, withCancel: nil)
+//
+//    }
+    func fetchingUserNameAndAvatar_Combine(opponent: RecentMessage_Class) -> Future<RecentMessage_Class, Never>{
+        return Future { promise in
+            
+            let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(opponent.uid)
+            
+            ref.observe(.value, with: { (snapshot) in
+                if let value = snapshot.value as? [String: AnyObject] {
+                    guard let imageURL = value[GlobalString.DB_user_profileImageUrl] as? String,
+                          let name = value[GlobalString.DB_user_userName] as? String else { return }
+                    opponent.name = name
+                    opponent.pic = imageURL
+                    
+                    promise(.success(opponent))
+                    
+                }
+            }, withCancel: nil)
+        }
         
     }
     
     
     // MARK: send func
     
-    func handlingSend(opponentID: String, chatText: String, complete:@escaping () -> ()) {
+    func sendingMessage(opponentID: String, chatText: String, complete:@escaping () -> ()) {
         guard let fromID = FirebaseManager.shared.auth.currentUser?.uid else { return }
         let toID = opponentID
         
@@ -263,7 +411,6 @@ class FirebaseManager: NSObject {
         }
     }
     
-    // MARK: - View
     
     // MARK: - Life Cycle
     

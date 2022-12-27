@@ -19,7 +19,7 @@ class NewMessageViewModel: ObservableObject {
     }
     
     deinit {
-        printLog("deinit")
+//        printLog("deinit")
     }
     
     private func fetchingAllUsers() {

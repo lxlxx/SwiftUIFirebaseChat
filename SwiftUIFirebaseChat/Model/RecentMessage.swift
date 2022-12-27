@@ -46,12 +46,12 @@ struct RecentMessage: Identifiable, Comparable, Equatable {
     }
     
     mutating func settingNameAndPic(){
-        var result = self
-        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: uid) { name, pic in
-            result.name = name
-            result.pic = pic
-        }
-        self = result
+//        var result = self
+//        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: uid) { name, pic in
+//            result.name = name
+//            result.pic = pic
+//        }
+//        self = result
     }
     // MARK: - Life Cycle
     init(id: Int, uid: String, lastmsg: String, timestamp: NSNumber) {
@@ -117,10 +117,10 @@ class RecentMessage_Class: Identifiable, Comparable, Equatable {
     
     func settingNameAndPic(){
         
-        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: uid) { [weak self = self] name, pic in
-            self?.name = name
-            self?.pic = pic
-        }
+//        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: uid) { [weak self = self] name, pic in
+//            self?.name = name
+//            self?.pic = pic
+//        }
         
     }
     // MARK: - Life Cycle
