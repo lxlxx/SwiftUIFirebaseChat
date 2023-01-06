@@ -6,64 +6,118 @@
 //
 
 import SwiftUI
+import Combine
 
-
-struct LoginAndRegistration_LBTA: View {
+class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     
     // MARK: - Data
+    @Published var email = ""
+    @Published var password = ""
+    @Published var statusMessage = ""
     
-    let didCompleteLoginProcess: () -> ()
+    @Published var loggedIn = false
     
-    @State private var isLoginMode = true
-    @State private var email = ""
-    @State private var password = ""
-    
-    @State var shouldShowImagePicker = false
-    
-    @State var image: UIImage?
-    
-    @State var loginStatusMessage = ""
+    private var cancellable = Set<AnyCancellable>()
     
     // MARK: - Func
-    
-    private func handlingSubmitAction() {
-        if isLoginMode {
-            login()
-            print("login")
-        } else {
-            creatingNewAccount()
-            print("Register")
-        }
+    func login() {
+        FirebaseManager.shared.login_combine(email: self.email, password: self.password)
+            .sink { [weak self] completion in
+                switch completion {
+                case let .failure(error):
+                    self?.statusMessage = String(describing: error)
+                default: break
+                }
+            } receiveValue: { [weak self] result in
+                self?.loggedIn = result
+            }.store(in: &cancellable)
     }
     
-    private func login() {
-        FirebaseManager.shared.login(email: self.email, password: self.password){
-            self.didCompleteLoginProcess()
+    func creatingNewAccount(image avatarImage: UIImage?) {
+        if avatarImage == nil {
+            self.statusMessage = "You must select an avatar image"
         }
-    }
-    
-    private func creatingNewAccount() {
-        if self.image == nil {
-            self.loginStatusMessage = "You must select an avatar image"
-        }
+        guard let imageData = avatarImage?.jpegData(compressionQuality: 0.2) else { return }
+        FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
+            .map { (result) in
+                FirebaseManager.shared.persistingImageToStorage_combine(imageData: imageData)
+            }
+            .map { result in
+                result.flatMap { [unowned self] (uid, url) in
+                    FirebaseManager.shared.updatingUserInformation_combine(email: self.email,
+                                                                           uid: uid,
+                                                                           imageProfileUrl: url)
+                }
+            }
+            .sink { [weak self] completion in
+                switch completion {
+                case let .failure(error):
+                    self?.statusMessage = String(describing: error)
+                default: break
+                }
+            } receiveValue: { [weak self] result in
+                self?.loggedIn = true
+            }
+            .store(in: &cancellable)
         
-        FirebaseManager.shared.creatingNewAccount(email: self.email, password: self.password) {
-            self.persistingImageToStorage()
-        }
+
+            
+
+            
+
+        
+//        FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
+//            .flatMap { (result) -> Just<Bool> in
+//                return result ? Just(true) : Just(false)
+//            }.eraseToAnyPublisher()
+//            .catch { [weak self] error -> Just<Bool> in
+//                self?.statusMessage = String(describing: error)
+//                return Just(false)
+//            }
     }
     
-    private func persistingImageToStorage() {
-        guard let imageData = self.image?.jpegData(compressionQuality: 0.2) else { return }
+    func persistingImageToStorage(image avatarImage: UIImage?) {
+        guard let imageData = avatarImage?.jpegData(compressionQuality: 0.2) else { return }
         FirebaseManager.shared.persistingImageToStorage(imageData: imageData) { uid, url in
             self.updatingUserInformation(uid: uid, imageProfileUrl: url)
         }
     }
     
-    private func updatingUserInformation(uid: String, imageProfileUrl: URL, name: String = "", about: String = ""){
+    func updatingUserInformation(uid: String, imageProfileUrl: URL, name: String = "", about: String = ""){
         FirebaseManager.shared.updatingUserInformation(email: email, uid: uid, imageProfileUrl: imageProfileUrl) {
-            self.didCompleteLoginProcess()
+// dismiss
         }
     }
+}
+
+struct LoginAndRegistration_LBTA: View {
+    
+    // MARK: - Data
+    @Environment(\.presentationMode) var presentationMode
+    
+    @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel()
+    
+    @State private var isLoginMode = true
+    
+    @State private var shouldShowImagePicker = false
+    
+    @State var avatarImage: UIImage?
+    
+    
+    // MARK: - Func
+    
+    private func handlingSubmitAction() {
+        if isLoginMode {
+            vm.login()
+        } else {
+            vm.creatingNewAccount(image: avatarImage)
+        }
+    }
+    
+    private func dismissView() {
+        presentationMode.wrappedValue.dismiss()
+    }
+    
     
     // MARK: - View
     
@@ -93,7 +147,10 @@ struct LoginAndRegistration_LBTA: View {
         //        .navigationSplitViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $shouldShowImagePicker) {
             Text("testing")
-            ImagePicker_LBTA(image: $image)
+            ImagePicker_LBTA(image: self.$avatarImage)
+        }
+        .onReceive(vm.$loggedIn) { loggedIn in
+            if loggedIn { dismissView() }
         }
     }
     
@@ -110,11 +167,11 @@ struct LoginAndRegistration_LBTA: View {
     
     private var userInformationTextFields: some View {
         Group{
-            TextField("Email", text: $email)
+            TextField("Email", text: $vm.email)
                 .keyboardType(.emailAddress)
                 .autocapitalization(.none)
             
-            SecureField("Password", text: $password)
+            SecureField("Password", text: $vm.password)
         }
         .padding(12)
         .background(Color.white)
@@ -127,7 +184,7 @@ struct LoginAndRegistration_LBTA: View {
                 shouldShowImagePicker.toggle()
             } label: {
                 VStack {
-                    if let image = self.image {
+                    if let image = self.avatarImage {
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFill()
@@ -164,7 +221,7 @@ struct LoginAndRegistration_LBTA: View {
     }
     
     private var loginStatusMessageTextView: some View {
-        Text(self.loginStatusMessage)
+        Text(vm.statusMessage)
             .foregroundColor(.red)
     }
     
@@ -176,6 +233,7 @@ struct LoginAndRegistration_LBTA: View {
 
 struct LoginAndRegistration_LBTA_Previews: PreviewProvider {
     static var previews: some View {
-        LoginAndRegistration_LBTA(didCompleteLoginProcess: {})
+        
+        LoginAndRegistration_LBTA()
     }
 }

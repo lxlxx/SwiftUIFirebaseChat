@@ -31,19 +31,19 @@ class MainMessageViewModel: ObservableObject {
     //key: value = chatPartnerID: Message
     //    var recentMessage = [String: Message]()
     
-    var appendRecentMessageTimer: Timer?
+//    var appendRecentMessageTimer: Timer?
     
-    var userRef: DatabaseReference?
+//    var userRef: DatabaseReference?
     
-    var cancellable = Set<AnyCancellable>()
+    private var cancellable = Set<AnyCancellable>()
     
     // MARK: - Life Cycle
     
     
     
     init() {
-        DispatchQueue.main.async {
-            self.isUserCurrentlyLoggedOut = FirebaseManager.shared.auth.currentUser?.uid == nil
+        DispatchQueue.main.async { [weak self] in
+            self?.isUserCurrentlyLoggedOut = FirebaseManager.shared.auth.currentUser?.uid == nil
         }
         
         fetchCurrentMessage_Combine()
@@ -95,9 +95,9 @@ class MainMessageViewModel: ObservableObject {
     func fetchCurrentMessage() {
         self.recentOpponentMessage.removeAll()
 //        self.recentMessage.removeAll()
-        self.userRef?.removeAllObservers()
-        FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID { chattingOpponentID, message in
-            self.updatingCurrentMessage(data: message, chattingOpponentID)
+//        self.userRef?.removeAllObservers()
+        FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID { [weak self] chattingOpponentID, message in
+            self?.updatingCurrentMessage(data: message, chattingOpponentID)
         }
 //        FirebaseManager.shared.fetchingAllChattingOpponentMessage()
 //            .compactMap { $0 }
@@ -251,15 +251,23 @@ struct MainMessageView_LBTA: View {
         return ChatLogView_LBTA(chatUser: self.currentUser, vm: vm)
     }
     
+    private func ondDismissLoginAndRegistration() {
+        
+        self.vm.isUserCurrentlyLoggedOut = false
+        self.vm.fetchingCurrentUserInfo()
+        self.vm.fetchCurrentMessage()
+    }
+    
+    
     // MARK: - View
     
     var body: some View {
 //        NavigationView {
 //            Color.red
             VStack {
-                Text("\(vm.errorMessage)")
-                    .lineLimit(10)
-                    .background(Color.red)
+//                Text("\(vm.errorMessage)")
+//                    .lineLimit(10)
+//                    .background(Color.red)
 
                 customNavBar
 
@@ -277,7 +285,7 @@ struct MainMessageView_LBTA: View {
                 newMessageButton, alignment: .bottom
             )
             .onDisappear {
-                vm.userRef?.removeAllObservers()
+//                vm.userRef?.removeAllObservers()
             }
 //        }
     }
@@ -330,12 +338,8 @@ struct MainMessageView_LBTA: View {
                     .cancel()
                            ])
         }
-        .fullScreenCover(isPresented: $vm.isUserCurrentlyLoggedOut) {
-            LoginAndRegistration_LBTA {
-                self.vm.isUserCurrentlyLoggedOut = false
-                self.vm.fetchingCurrentUserInfo()
-                self.vm.fetchCurrentMessage()
-            }
+        .fullScreenCover(isPresented: $vm.isUserCurrentlyLoggedOut, onDismiss: ondDismissLoginAndRegistration) {
+            LoginAndRegistration_LBTA()
             
         }
     }

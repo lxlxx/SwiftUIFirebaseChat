@@ -26,6 +26,18 @@ class FirebaseManager: NSObject {
     
     // MARK: - Func
     
+    func login_combine(email: String, password: String) -> Future<Bool, Error>  {
+        Future { promise in
+            FirebaseManager.shared.auth.signIn(withEmail: email, password: password) {
+                result, err in
+                if let err = err {
+                    promise(.failure("Failed to login user \(err.localizedDescription)"))
+                }
+                promise(.success(true))
+            }
+        }
+    }
+    
     func login(email: String, password: String, complete: @escaping () -> () )  {
         FirebaseManager.shared.auth.signIn(withEmail: email, password: password) {
             result, err in
@@ -39,6 +51,18 @@ class FirebaseManager: NSObject {
             //            throw "Successfully logged in as user: \(result?.user.uid ?? "")"
             complete()
             
+        }
+    }
+    
+    func creatingNewAccount_combine(email: String, password: String) -> Future<Bool, Error>{
+        Future { promise in
+            FirebaseManager.shared.auth.createUser(withEmail: email, password: password) {
+                result, err in
+                if let err = err {
+                    promise(.failure("Failed to create user \(err.localizedDescription)"))
+                }
+                promise(.success(true))
+            }
         }
     }
     
@@ -58,6 +82,38 @@ class FirebaseManager: NSObject {
             complete()
         }
     }
+    
+    func persistingImageToStorage_combine(imageData: Data) -> Future<(String, URL), Error> {
+        Future { promise in
+            guard let uid = FirebaseManager.shared.auth.currentUser?.uid else {
+                promise(.failure("uid not found"))
+                return
+            }
+            
+            let ref = FirebaseManager.shared.storage.reference()
+                .child(GlobalString.DB_profilepics).child(uid)
+            
+            ref.putData(imageData) { metadata, err in
+                if let err = err {
+                    promise(.failure("\(err)"))
+                }
+                
+                ref.downloadURL { url, err in
+                    if let err = err {
+                        promise(.failure("\(err)"))
+                    }
+                    
+                    guard let url = url else {
+                        promise(.failure("url not found"))
+                        return
+                    }
+                    promise(.success((uid, url)))
+                    
+                }
+            }
+        }
+    }
+    
     
     func persistingImageToStorage(imageData: Data ,complete: @escaping (_ uid: String, _ url: URL) -> () ){
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
@@ -89,6 +145,24 @@ class FirebaseManager: NSObject {
         }
     }
     
+    func updatingUserInformation_combine(email: String, uid: String, imageProfileUrl: URL, name: String = "", about: String = "") -> Future<Bool, Error> {
+        
+        Future { promise in
+            let ref = FirebaseManager.shared.database.reference()
+            let usersRef = ref.child("users").child(uid)
+            
+            let value = ["email": email, "name": name, "about": about, "pic": "\(imageProfileUrl)"] as [String : Any]
+            
+            usersRef.updateChildValues(value, withCompletionBlock: { (updateChildValuesErr, ref) in
+                
+                if updateChildValuesErr != nil {
+                    promise(.failure("\(updateChildValuesErr?.localizedDescription)"))
+                }
+                promise(.success(true))
+            })
+        }
+    }
+    
     func updatingUserInformation(email: String, uid: String, imageProfileUrl: URL, name: String = "", about: String = "", complete: @escaping () -> ()) {
         let ref = FirebaseManager.shared.database.reference()
         let usersRef = ref.child("users").child(uid)
@@ -103,6 +177,31 @@ class FirebaseManager: NSObject {
             }
             
         })
+    }
+    
+    func fetchingCurrentUserInfo_combine() ->Future<ChatUser, Error> {
+        Future { promise in
+            guard let uid = FirebaseManager.shared.auth.currentUser?.uid else {
+                promise(.failure("Could not find uid"))
+                return
+            }
+            
+            let ref = FirebaseManager.shared.database.reference()
+                .child(GlobalString.DB_user_dir).child(uid)
+            
+            ref.observeSingleEvent(of: .value) { snapshot, err in
+                if let err = err {
+                    promise(.failure("\(err)"))
+                    return
+                }
+                
+                if let dictionary = snapshot.value as? [String: AnyObject] {
+                    let currentUserInfo = ChatUser(uid: uid, dictionary: dictionary)
+                    promise(.success(currentUserInfo))
+                    
+                }
+            }
+        }
     }
     
     func fetchingCurrentUserInfo(complete: @escaping (_ currentUserInfo: ChatUser) -> ()) throws {
@@ -231,7 +330,6 @@ class FirebaseManager: NSObject {
     
     func fetchingAllMessageByOpponentID_Combine(opponentID: String) -> AnyPublisher<DatabaseReference?, Never> {
         let subject = CurrentValueSubject<DatabaseReference?, Never>(nil)
-        
         guard let myID = FirebaseManager.shared.auth.currentUser?.uid else { return subject.eraseToAnyPublisher() }
             let toID = opponentID
             

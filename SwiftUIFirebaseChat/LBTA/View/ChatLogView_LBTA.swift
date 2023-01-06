@@ -15,6 +15,14 @@
 
 // https://stackoverflow.com/questions/60511185/how-can-i-setup-firebase-to-observe-only-new-data
 
+// Showing and hiding views – iExpense SwiftUI Tutorial 3/11
+// https://www.youtube.com/watch?v=61O6IdqKZVg&ab_channel=PaulHudson
+
+// https://stackoverflow.com/questions/72401569/show-custom-popup-view-on-top-of-view-hierarchy-swiftui
+
+// SwiftUI 2.0 Multiple Image Viewer - Pinch to Zoom - Drag to Dismiss - SwiftUI Tutorials
+// https://www.youtube.com/watch?v=XDH1KmI86b0&ab_channel=Kavsoft
+
 import SwiftUI
 import Firebase
 import SDWebImageSwiftUI
