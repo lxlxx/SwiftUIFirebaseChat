@@ -407,6 +407,26 @@ class FirebaseManager: NSObject {
         )
         
     }
+    func fetchingAllUsers_Combine() -> AnyPublisher<ChatUser, Error> {
+        
+        let subject = PassthroughSubject<ChatUser, Error>()
+        FirebaseManager.shared.database.reference().child(GlobalString.DB_user_dir).observe(.childAdded, with: {(snapshot) in
+            if let dictionary = snapshot.value as? [String: AnyObject]{
+                guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+                
+                if uid != snapshot.key {
+                    let id = snapshot.key
+                    subject.send(ChatUser(uid: id, dictionary: dictionary))
+                }
+                
+            } else {
+                subject.send(completion: .failure("can't find users"))
+            }
+        }, withCancel: nil
+        )
+        
+        return subject.eraseToAnyPublisher()
+    }
     
     func fetchingAllMessageByOpponentID(opponentID: String, complete: @escaping (_ message: [String: AnyObject]) -> ()) {
         guard let myID = FirebaseManager.shared.auth.currentUser?.uid else { return }

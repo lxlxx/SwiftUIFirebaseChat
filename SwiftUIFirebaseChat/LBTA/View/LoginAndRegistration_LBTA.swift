@@ -33,21 +33,24 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
             }.store(in: &cancellable)
     }
     
+//https://www.donnywals.com/configuring-error-types-when-using-flatmap-in-combine/
+//https://stackoverflow.com/questions/57543855/using-just-with-flatmap-produce-failure-mismatch-combine
+//https://www.avanderlee.com/swift/combine-error-handling/
+    
     func creatingNewAccount(image avatarImage: UIImage?) {
         if avatarImage == nil {
             self.statusMessage = "You must select an avatar image"
         }
         guard let imageData = avatarImage?.jpegData(compressionQuality: 0.2) else { return }
         FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
-            .map { (result) in
+            .flatMap { result -> AnyPublisher<(String, URL), Error> in
                 FirebaseManager.shared.persistingImageToStorage_combine(imageData: imageData)
+                    .eraseToAnyPublisher()
             }
-            .map { result in
-                result.flatMap { [unowned self] (uid, url) in
-                    FirebaseManager.shared.updatingUserInformation_combine(email: self.email,
-                                                                           uid: uid,
-                                                                           imageProfileUrl: url)
-                }
+            .flatMap { [unowned self] (uid, url) in
+                FirebaseManager.shared.updatingUserInformation_combine(email: self.email,
+                                                                       uid: uid,
+                                                                       imageProfileUrl: url)
             }
             .sink { [weak self] completion in
                 switch completion {
@@ -56,38 +59,11 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 default: break
                 }
             } receiveValue: { [weak self] result in
-                self?.loggedIn = true
-            }
-            .store(in: &cancellable)
-        
-
-            
-
-            
-
-        
-//        FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
-//            .flatMap { (result) -> Just<Bool> in
-//                return result ? Just(true) : Just(false)
-//            }.eraseToAnyPublisher()
-//            .catch { [weak self] error -> Just<Bool> in
-//                self?.statusMessage = String(describing: error)
-//                return Just(false)
-//            }
+                self?.loggedIn = result
+            }.store(in: &cancellable)
     }
     
-    func persistingImageToStorage(image avatarImage: UIImage?) {
-        guard let imageData = avatarImage?.jpegData(compressionQuality: 0.2) else { return }
-        FirebaseManager.shared.persistingImageToStorage(imageData: imageData) { uid, url in
-            self.updatingUserInformation(uid: uid, imageProfileUrl: url)
-        }
-    }
     
-    func updatingUserInformation(uid: String, imageProfileUrl: URL, name: String = "", about: String = ""){
-        FirebaseManager.shared.updatingUserInformation(email: email, uid: uid, imageProfileUrl: imageProfileUrl) {
-// dismiss
-        }
-    }
 }
 
 struct LoginAndRegistration_LBTA: View {

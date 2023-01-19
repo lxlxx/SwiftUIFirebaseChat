@@ -26,6 +26,7 @@
 import SwiftUI
 import Firebase
 import SDWebImageSwiftUI
+import Combine
 
 struct ChatMessage {
     let fromID, toID, text: String
@@ -41,6 +42,8 @@ class ChatLogViewModel_LBTA: ObservableObject {
     @Published var chatText = ""
     
     @Published var chatMessage: [Message] = []
+    
+    private var cancellable = Set<AnyCancellable>()
     
     let chatUser: ChatUser?
     
@@ -68,10 +71,30 @@ class ChatLogViewModel_LBTA: ObservableObject {
         
         removeAllChatMessages()
         
-        FirebaseManager.shared.fetchingAllMessageByOpponentID(opponentID: opponentID){
-            [ weak weakSelf = self]  msg in
-            weakSelf?.appendMessage(msg)
-        }
+//        FirebaseManager.shared.fetchingAllMessageByOpponentID(opponentID: opponentID){
+//            [ weak weakSelf = self]  msg in
+//            weakSelf?.appendMessage(msg)
+//        }
+        FirebaseManager.shared.fetchingAllMessageByOpponentID_Combine(opponentID: opponentID)
+            .compactMap{ $0 }
+            .flatMap { ref in
+                FirebaseManager.shared.fetchingMessageContentByMsgID_Combine(ref).eraseToAnyPublisher()
+            }
+            .compactMap{ $0 }
+            .sink { _ in
+                
+            } receiveValue: { [weak self] msg in
+                self?.appendMessage(msg)
+            }
+            .store(in: &cancellable)
+
+    }
+    
+    func appendMessage(_ msg: Message ) {
+        var lastMsg = msg
+        let messageIDCount = chatMessage.count + 1
+        lastMsg.id = messageIDCount
+        chatMessage.append(lastMsg)
     }
     
     func appendMessage(_ dictionary: [String: AnyObject] ) {
@@ -319,7 +342,9 @@ struct FullScreenView<Content: View>: View {
     @Environment(\.presentationMode) var presentationMode
     
     @ViewBuilder var contentView: Content
-    
+
+//    This variable provides an option to dismiss the full screen or not by clicking the content
+//    some types of content may not need to dismiss, like video which may includes some interactions with user
     var dismissFullScreenByClickingContentView = false
     
     // MARK: - Func
@@ -415,5 +440,16 @@ extension View {
         } else {
             self
         }
+    }
+}
+
+
+extension View {
+    func iOS<Content: View>(_ modifier: (Self) -> Content) -> some View {
+        #if os(iOS)
+        return modifier(self)
+        #else
+        return self
+        #endif
     }
 }

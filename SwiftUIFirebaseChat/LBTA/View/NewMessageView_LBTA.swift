@@ -7,12 +7,15 @@
 
 import SwiftUI
 import SDWebImageSwiftUI
+import Combine
 
 class NewMessageViewModel: ObservableObject {
     
     @Published var users = [ChatUser]()
     
     @Published var errorMsg = ""
+    
+    private var cancellable = Set<AnyCancellable>()
     
     init() {
         fetchingAllUsers()
@@ -23,11 +26,16 @@ class NewMessageViewModel: ObservableObject {
     }
     
     private func fetchingAllUsers() {
-        FirebaseManager.shared.fetchingAllUsers { user in
+        
+        FirebaseManager.shared.fetchingAllUsers_Combine().sink { [weak self] completion in
+            switch completion {
+            case let .failure(error):
+                self?.errorMsg = String(describing: error)
+            default: break
+            }
+        } receiveValue: { user in
             self.users.append(user)
-        } failed: {
-            self.errorMsg = "fetch users failed"
-        }
+        }.store(in: &cancellable)
 
         
     }
