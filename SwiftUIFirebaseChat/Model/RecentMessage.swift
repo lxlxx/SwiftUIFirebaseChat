@@ -24,7 +24,14 @@ struct RecentMessage: Identifiable, Comparable, Equatable {
     
     var lastmsg: String
     
-    var message: [Message] = []
+    var message: [Message] = [] {
+        willSet {
+            guard let lastMsg = newValue.last?.text,
+                  let ts = newValue.last?.timestamp else { return }
+            lastmsg = lastMsg
+            timestamp = ts
+        }
+    }
     
     var timestamp: NSNumber
     

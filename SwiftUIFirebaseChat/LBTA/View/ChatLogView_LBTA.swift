@@ -23,6 +23,10 @@
 // SwiftUI 2.0 Multiple Image Viewer - Pinch to Zoom - Drag to Dismiss - SwiftUI Tutorials
 // https://www.youtube.com/watch?v=XDH1KmI86b0&ab_channel=Kavsoft
 
+// Protocol and Value Oriented Programming in UIKit Apps
+// https://developer.apple.com/videos/play/wwdc2016/419/
+//https://developer.apple.com/library/archive/LucidDreams/Introduction/Intro.html#//apple_ref/doc/uid/TP40017334-Intro-DontLinkElementID_2
+
 import SwiftUI
 import Firebase
 import SDWebImageSwiftUI
@@ -118,13 +122,17 @@ struct ChatLogView_LBTA: View {
     
     // MARK: - Data
     
-    private let scrollViewBottomID = "scrollViewBottom"
+    private let bottomViewID = "bottomView"
     
     @ObservedObject var vm: ChatLogViewModel_LBTA
     
     let chatUser: ChatUser?
     
     // MARK: - Func
+    
+    private func scrollToButtom(proxy: ScrollViewProxy) {
+        proxy.scrollTo(bottomViewID, anchor: .bottom)
+    }
     
     // MARK: - View
     
@@ -165,7 +173,7 @@ struct ChatLogView_LBTA: View {
                         }
                         
                         HStack { Spacer() }
-                            .id(scrollViewBottomID)
+                            .id(bottomViewID)
                     }
                     .onChange(of: vm.chatMessage.count) { _ in
                         withAnimation(.easeOut(duration: 0.5)) {
@@ -178,10 +186,6 @@ struct ChatLogView_LBTA: View {
             .navigationTitle("\(chatUser?.name ?? "")")
             
         }
-    }
-    
-    private func scrollToButtom(proxy: ScrollViewProxy) {
-        proxy.scrollTo(scrollViewBottomID, anchor: .bottom)
     }
     
     private var messageInputView: some View {
@@ -217,7 +221,12 @@ struct ChatLogView_LBTA: View {
 }
 
 fileprivate struct ChatLogViewRow: View {
+    // MARK: - Data
     var content: Message
+    
+    // MARK: - Func
+    
+    // MARK: - View
     
     var body: some View {
         HStack {
@@ -225,15 +234,7 @@ fileprivate struct ChatLogViewRow: View {
                 Spacer()
             }
             
-            HStack {
-//                ChatLogViewRow_Image()
-//                ChatLogViewRow_Image(parentGeometry: geo)
-                Text("\(content.text ?? "")")
-                    .foregroundColor(content.messageFromCurrentUser() ? .white : .black)
-            }
-            .padding()
-            .background(content.messageFromCurrentUser() ? Color.blue : Color.white)
-            .cornerRadius(16)
+            rowContentView
             
             if !content.messageFromCurrentUser() {
                 Spacer()
@@ -242,16 +243,92 @@ fileprivate struct ChatLogViewRow: View {
         .padding(.horizontal)
         .padding(.top, 8)
     }
+    
+    @ViewBuilder
+    var rowContentView: some View {
+        switch content.type {
+        case .text:
+            ChatLogViewRow_Text(content: content)
+        case .image:
+            ChatLogViewRow_Image(content: content)
+        }
+    }
+    
+    // MARK: - Life Cycle
     init(content: Message) {
         self.content = content
     }
 }
 
-struct ChatLogViewRow_Image: View {
+protocol Layout {
+    // wwdc 419
+    /// Lay out this layout and all of its contained layouts within `rect`.
+    mutating func layout(in rect: CGRect)
+
+    /// The type of the leaf content elements in this layout.
+    associatedtype Content
+
+    /// Return all of the leaf content elements contained in this layout and its descendants.
+    var contents: [Content] { get }
+}
+
+//extension View: Layout {
+//    Extension of protocol 'View' cannot have an inheritance clause
+//    typealias Content = UIView
+//
+//    func layout(in rect: CGRect) {
+//        self.frame = rect
+//    }
+//
+//    var contents: [Content] {
+//        return [self]
+//    }
+//}
+protocol chatLogRowContent {
+    var content: Message { get set }
+}
+
+
+struct ChatLogViewRow_Text: View, chatLogRowContent {
+    var content: Message
+    
+    var body: some View {
+        HStack {
+            
+            Text("\(content.text ?? "")")
+                .foregroundColor(content.messageFromCurrentUser() ? .white : .black)
+        }
+        .padding()
+        .background(content.messageFromCurrentUser() ? Color.blue : Color.white)
+        .cornerRadius(16)
+    }
+}
+
+struct ChatLogViewRow_Image: View, chatLogRowContent {
     
     // MARK: - Data
+    var content: Message
+    
     private let defaultPic = "IMG_0001"
-    private var picURL: String?
+    
+    private var picSize: CGSize {
+        if let imageWidth = content.imageWidth, let imageHeight = content.imageHeight {
+            let mainWidth = mainWindowSize.width * 0.6
+            let height = Double(mainWidth * CGFloat(imageHeight / imageWidth))
+            
+            return CGSize(width: mainWidth, height: height)
+        }
+        return CGSize(width: 150, height: 100)
+    }
+    
+    private var picURL: String {
+        if let imageURL = content.imageURL {
+            return imageURL
+        } else {
+            return defaultPic
+        }
+        
+    }
     
 //    private var screenSzie = UIScreen.main.bounds
 
@@ -270,54 +347,42 @@ struct ChatLogViewRow_Image: View {
                     chatLogViewRowImage
                 }
             }
-//            Text("width: \(mainWindowSize.width), height: \(mainWindowSize.height)")
         }
         .fullScreenCover(isPresented: $fullScrennPicShowed) {
             FullScreenView {
-                Image(defaultPic)
-                    .resize_Fit_Clipped()
+                WebImage(url: URL(string: picURL))
+                    .resizable()
+                    .scaledToFit()
+                    .clipped()
                 
             }
-//            Text("\(screenSzie.height) \(screenSzie.width)")
         }
     }
     
     var imageBackgroundColor: some View {
         Color(.init(white:0, alpha: 0.05))
-            .frame(width: 150
-                   , height: 100)
-            .cornerRadius(44)
-                .overlay(RoundedRectangle(cornerRadius: 44)
-                    .stroke(Color(.label), lineWidth: 1))
+            .frame(width: picSize.width, height: picSize.height)
+            .cornerRadius(16)
+                .overlay(RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(.label), lineWidth: 2))
                 .shadow(radius: 5)
-//            .if(fullScrennPicShowed) { view in
-//                view.ignoresSafeArea()
-//            }
-//            .if(!fullScrennPicShowed){ view in
-//                view.cornerRadius(44)
-//                    .overlay(RoundedRectangle(cornerRadius: 44)
-//                        .stroke(Color(.label), lineWidth: 1))
-//                    .shadow(radius: 5)
-//            }
     }
     
     var chatLogViewRowImage: some View {
-        Image(defaultPic)
-            .resize_Fit_Clipped()
-            .frame(width: 150
-                   , height: 100)
-//            .if(fullScrennPicShowed, transform: { image in
-//                image
-//                    .cornerRadius(44)
-//                    .overlay(RoundedRectangle(cornerRadius: 44)
-//                        .stroke(Color(.label), lineWidth: 1))
-//                    .shadow(radius: 5)
-//            })
+        WebImage(url: URL(string: picURL))
+            .resizable()
+            .scaledToFit()
+            .frame(width: picSize.width, height: picSize.height)
+            .clipped()
+            .cornerRadius(16)
     }
     
 
     
     // MARK: - Life Cycle
+    init(content: Message) {
+        self.content = content
+    }
     
 //    init(picURL: String? = nil, parentGeometry: GeometryProxy, fullScrennPic: Bool = false) {
 //        self.picURL = picURL
@@ -344,7 +409,7 @@ struct FullScreenView<Content: View>: View {
     @ViewBuilder var contentView: Content
 
 //    This variable provides an option to dismiss the full screen or not by clicking the content
-//    some types of content may not need to dismiss, like video which may includes some interactions with user
+//    some types of content may not need to dismiss, such as videos which may includes some interactions with user
     var dismissFullScreenByClickingContentView = false
     
     // MARK: - Func
@@ -453,3 +518,4 @@ extension View {
         #endif
     }
 }
+

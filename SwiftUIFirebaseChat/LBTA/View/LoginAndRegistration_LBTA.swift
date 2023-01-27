@@ -5,6 +5,12 @@
 //  Created by yu fai on 13/10/2022.
 //
 
+//Introducing Combine
+//https://developer.apple.com/videos/play/wwdc2019/722
+
+//Combine in Practice
+//https://developer.apple.com/videos/play/wwdc2019/721
+
 import SwiftUI
 import Combine
 

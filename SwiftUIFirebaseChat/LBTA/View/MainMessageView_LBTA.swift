@@ -23,17 +23,9 @@ class MainMessageViewModel: ObservableObject {
     
     @Published var recentOpponentMessage = [RecentMessage_Class]() {
         didSet {
-            //sortting in here always crash the xcode, dont know why - 20221206
-            //            recents.sort()
+            
         }
     }
-    
-    //key: value = chatPartnerID: Message
-    //    var recentMessage = [String: Message]()
-    
-//    var appendRecentMessageTimer: Timer?
-    
-//    var userRef: DatabaseReference?
     
     private var cancellable = Set<AnyCancellable>()
     
@@ -51,12 +43,6 @@ class MainMessageViewModel: ObservableObject {
         fetchingCurrentUserInfo()
         
         
-//        fetchCurrentMessage_Combine()
-        
-//        FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID_Combine()
-//            .sink { [weak self] opponentID in
-//                self?.errorMessage += opponentID
-//            }.store(in: &cancellable)
     }
     
     deinit {
@@ -94,56 +80,15 @@ class MainMessageViewModel: ObservableObject {
     
     func fetchCurrentMessage() {
         self.recentOpponentMessage.removeAll()
-//        self.recentMessage.removeAll()
-//        self.userRef?.removeAllObservers()
         FirebaseManager.shared.fetchingAllCurrentUserChattingOpponentID { [weak self] chattingOpponentID, message in
             self?.updatingCurrentMessage(data: message, chattingOpponentID)
         }
-//        FirebaseManager.shared.fetchingAllChattingOpponentMessage()
-//            .compactMap { $0 }
-//            .sink { [weak self] msg in
-//                self?.updatingCurrentMessage(msg: msg, oppID: msg.chatPartnerID())
-//            }.store(in: &cancellable)
-        
-//        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-//
-//        let ref = FirebaseManager.shared.database.reference()
-//        self.userRef = ref.child(GlobalString.userMessageDir).child(uid)
-//
-//        self.userRef?.observe(.childAdded) { snapshot in
-//            let chatPartnersID = snapshot.key
-//            let chatPartnersmessagesRef = FirebaseManager.shared.database.reference()
-//                .child(GlobalString.userMessageDir)
-//                .child(uid)
-//                .child(chatPartnersID)
-////                .queryOrdered(byChild: "")
-////                .queryLimited(toLast: 1)
-//
-//            chatPartnersmessagesRef.observe(.childAdded, with: { (snapshot) in
-//                let messageID = snapshot.key
-//                let messagesRef = FirebaseManager.shared.database.reference()
-//                    .child(GlobalString.messageDir)
-//                    .child(messageID)
-//
-//                self.fetchMessageContentByID(messagesRef, chatPartnersID)
-//            })
-//        }
     }
 
     
     //.queryOrdered(byChild: "metrics/views")
     //.queryLimited(toFirst: 100))!
     //https://firebase.google.com/docs/database/ios/lists-of-data#data_order
-    
-//    func fetchMessageContentByID(_ ref: DatabaseReference, _ opponentUID: String){
-//        ref.observe(.value, with: { (snapshot) in
-//
-//            if let dictionary = snapshot.value as? [String: AnyObject] {
-//                self.updatingCurrentMessage(data: dictionary, opponentUID)
-//            }
-//
-//            }, withCancel: nil)
-//    }
     
     func updatingCurrentMessage(msg: Message, oppID opponentUID: String){
         var opponentLastMsg = msg
@@ -201,28 +146,6 @@ class MainMessageViewModel: ObservableObject {
                     self?.recentOpponentMessage[index] = opponent
                 }
             }.store(in: &cancellable)
-
-
-//        FirebaseManager.shared.fetchingUserNameAndAvatar(uid: opponentUID) { name, pic in
-//            if let index = self.recentOpponentMessage.firstIndex(where: {$0.uid == opponentUID }) {
-//                let opponent = self.recentOpponentMessage[index]
-//                opponent.name = name
-//                opponent.pic = pic
-//                self.recentOpponentMessage[index] = opponent
-//            }
-            
-            
-//            if let opponent = self.recents.first(where: { $0.uid == opponentUID }) {
-////                DispatchQueue.main.sync { not working
-//                    opponent.name = name
-//                    opponent.pic = pic
-//
-//                //self.recents.first(where: { $0.uid == opponentUID }).name = name not
-// Done 20221206 the array will not update if only change the data inside one element in array
-// have to update the array directly
-// TODO: find out why without the code below the UI dont refresh
-//                self.errorMessage = ""
-//            }
         
     }
 }
@@ -262,8 +185,6 @@ struct MainMessageView_LBTA: View {
     // MARK: - View
     
     var body: some View {
-//        NavigationView {
-//            Color.red
             VStack {
 //                Text("\(vm.errorMessage)")
 //                    .lineLimit(10)
@@ -287,7 +208,7 @@ struct MainMessageView_LBTA: View {
             .onDisappear {
 //                vm.userRef?.removeAllObservers()
             }
-//        }
+
     }
     
     private var customNavBar: some View {

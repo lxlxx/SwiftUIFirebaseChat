@@ -492,6 +492,26 @@ class FirebaseManager: NSObject {
         
     }
     
+    func fetchingUserNameAndAvatar_Combine(opponent: RecentMessage) -> Future<RecentMessage, Never>{
+        var myOpponent = opponent
+        return Future { promise in
+            
+            let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(opponent.uid)
+            
+            ref.observe(.value, with: { (snapshot) in
+                if let value = snapshot.value as? [String: AnyObject] {
+                    guard let imageURL = value[GlobalString.DB_user_profileImageUrl] as? String,
+                          let name = value[GlobalString.DB_user_userName] as? String else { return }
+                    myOpponent.name = name
+                    myOpponent.pic = imageURL
+                    
+                    promise(.success(myOpponent))
+                    
+                }
+            }, withCancel: nil)
+        }
+        
+    }
     
     // MARK: send func
     
