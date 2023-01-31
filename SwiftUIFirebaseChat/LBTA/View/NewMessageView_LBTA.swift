@@ -87,14 +87,8 @@ struct NewMessageViewRowViewDetail: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            WebImage(url: URL(string: user.profilImage))
-                .resizable()
-                .scaledToFill()
-                .frame(width: 48, height: 48)
-                .clipped()
-                .cornerRadius(48)
-                .overlay(RoundedRectangle(cornerRadius: 48)
-                    .stroke(Color(.label), lineWidth: 1))
+            userAvatarView(url: user.profilImage, size: CGSize(width: 48, height: 48))
+            
             Text("\(user.name)").foregroundColor(.black)
             Spacer()
         }

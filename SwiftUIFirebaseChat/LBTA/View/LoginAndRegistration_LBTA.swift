@@ -19,11 +19,20 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     // MARK: - Data
     @Published var email = ""
     @Published var password = ""
+    @Published var confirmPassword = ""
     @Published var statusMessage = ""
     
     @Published var loggedIn = false
     
     private var cancellable = Set<AnyCancellable>()
+    
+    @Published var validatedPassword = false
+    
+    @Published var validatedinput = false
+    
+    @Published var isLoginMode = true
+    
+    @Published var submitEnabled = false
     
     // MARK: - Func
     func login() {
@@ -37,13 +46,18 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
             } receiveValue: { [weak self] result in
                 self?.loggedIn = result
             }.store(in: &cancellable)
+        
     }
     
 //https://www.donnywals.com/configuring-error-types-when-using-flatmap-in-combine/
 //https://stackoverflow.com/questions/57543855/using-just-with-flatmap-produce-failure-mismatch-combine
 //https://www.avanderlee.com/swift/combine-error-handling/
     
+//https://swiftwithmajid.com/2021/05/12/combining-multiple-combine-publishers-in-swift/
+//https://augmentedcode.io/2022/10/03/combine-publishers-merge-zip-and-combinelatest-on-ios/
+    
     func creatingNewAccount(image avatarImage: UIImage?) {
+        
         if avatarImage == nil {
             self.statusMessage = "You must select an avatar image"
         }
@@ -70,6 +84,53 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     }
     
     
+    init() {
+        $password
+            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .sink { password in
+                print("password \(password)")
+            }
+            .store(in: &cancellable)
+//        $password
+//            .combineLatest($confirmPassword)
+//            .allSatisfy { password, confirmPassword in
+//                print("validatedPassword, \(password), \(confirmPassword)")
+//                return password.count > 0 && password == confirmPassword
+//            }
+//            .sink { [unowned self] result in
+//                self.validatedPassword = result
+//            }
+//            .store(in: &cancellable)
+        
+        $password
+            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .combineLatest($confirmPassword)
+            .sink{ [unowned self] password, confirmPassword in
+                self.validatedPassword = password.count > 0 && password == confirmPassword
+            }
+            .store(in: &cancellable)
+
+        $password
+            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .combineLatest($email)
+            .sink { [unowned self] password, email in
+                self.validatedinput = password.count > 0 && email.count > 0
+            }
+            .store(in: &cancellable)
+        
+        $isLoginMode
+            .debounce(for: .seconds(0.1), scheduler: RunLoop.main)
+            .combineLatest($validatedPassword, $validatedinput)
+            .sink { [unowned self] isLoginMode, validatedPassword, validatedinput in
+                if isLoginMode {
+                    self.submitEnabled = validatedinput
+                } else {
+                    self.submitEnabled = validatedinput && validatedPassword
+                }
+            }
+            .store(in: &cancellable)
+    }
+    
 }
 
 struct LoginAndRegistration_LBTA: View {
@@ -79,17 +140,17 @@ struct LoginAndRegistration_LBTA: View {
     
     @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel()
     
-    @State private var isLoginMode = true
-    
     @State private var shouldShowImagePicker = false
     
-    @State var avatarImage: UIImage?
+    @State private var avatarImage: UIImage?
     
+    @State private var programViewEnabled = false
     
     // MARK: - Func
     
     private func handlingSubmitAction() {
-        if isLoginMode {
+        programViewEnabled = true
+        if vm.isLoginMode {
             vm.login()
         } else {
             vm.creatingNewAccount(image: avatarImage)
@@ -97,6 +158,7 @@ struct LoginAndRegistration_LBTA: View {
     }
     
     private func dismissView() {
+        programViewEnabled = false
         presentationMode.wrappedValue.dismiss()
     }
     
@@ -105,23 +167,27 @@ struct LoginAndRegistration_LBTA: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 16){
-                    
-                    loginAndRegistrationPicker
-                    
-                    imagePickerView
-                    
-                    userInformationTextFields
-                    
-                    submitButton
-                    
-                    loginStatusMessageTextView
-                    
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 16){
+                        
+                        loginAndRegistrationPicker
+                        
+                        imagePickerView
+                        
+                        userInformationTextFields
+                        
+                        submitButton
+                        
+                        loginStatusMessageTextView
+                        
+                    }
+                    .padding()
                 }
-                .padding()
+                programView
+                    
             }
-            .navigationTitle(isLoginMode ? "Login" : "Create Account")
+            .navigationTitle(vm.isLoginMode ? "Login" : "Create Account")
             .background(Color(.init(white:0, alpha: 0.05))
                 .ignoresSafeArea())
             
@@ -136,9 +202,23 @@ struct LoginAndRegistration_LBTA: View {
         }
     }
     
+    @ViewBuilder
+    private var programView: some View {
+        if programViewEnabled {
+            VStack {
+                Text("loading")
+                ProgressView()
+                    .progressViewStyle(.circular)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.alpha0_5)
+            .ignoresSafeArea()
+        }
+    }
+    
     private var loginAndRegistrationPicker: some View {
         
-        Picker(selection: $isLoginMode,
+        Picker(selection: $vm.isLoginMode,
                label: Text("Picker here")) {
             Text("Login")
                 .tag(true)
@@ -154,6 +234,9 @@ struct LoginAndRegistration_LBTA: View {
                 .autocapitalization(.none)
             
             SecureField("Password", text: $vm.password)
+            if !vm.isLoginMode {
+                SecureField("Confirm Password", text: $vm.confirmPassword)
+            }
         }
         .padding(12)
         .background(Color.white)
@@ -161,7 +244,7 @@ struct LoginAndRegistration_LBTA: View {
     
     @ViewBuilder
     private var imagePickerView: some View {
-        if !isLoginMode {
+        if !vm.isLoginMode {
             Button {
                 shouldShowImagePicker.toggle()
             } label: {
@@ -193,13 +276,15 @@ struct LoginAndRegistration_LBTA: View {
         } label: {
             HStack {
                 Spacer()
-                Text(isLoginMode ? "Login" : "Create Account")
+                Text(vm.isLoginMode ? "Login" : "Create Account")
                     .foregroundColor(.white)
                     .padding(.vertical, 10)
                     .font(.system(size: 14, weight: .semibold))
                 Spacer()
-            }.background(Color.blue)
+            }.background(vm.submitEnabled ? Color.blue : Color.gray)
         }
+        .disabled(!vm.submitEnabled)
+        
     }
     
     private var loginStatusMessageTextView: some View {
@@ -209,7 +294,9 @@ struct LoginAndRegistration_LBTA: View {
     
     // MARK: - Life Cycle
     
-    
+    init(){
+        
+    }
     
 }
 

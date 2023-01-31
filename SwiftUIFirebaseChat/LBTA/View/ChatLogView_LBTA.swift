@@ -159,6 +159,11 @@ struct ChatLogView_LBTA: View {
         }
         
     }
+    //    How to use protocol in List in SwiftUI #446
+    //    This is not possible because item in List needs to conform to Identifiable
+    //
+    //    Protocol type 'Service' cannot conform to 'Identifiable' because only concrete types can conform to protocols
+    //https://github.com/onmyway133/blog/issues/446
     
     private var messageView: some View {
         VStack {
@@ -354,7 +359,6 @@ struct ChatLogViewRow_Image: View, chatLogRowContent {
                     .resizable()
                     .scaledToFit()
                     .clipped()
-                
             }
         }
     }
@@ -410,7 +414,7 @@ struct FullScreenView<Content: View>: View {
 
 //    This variable provides an option to dismiss the full screen or not by clicking the content
 //    some types of content may not need to dismiss, such as videos which may includes some interactions with user
-    var dismissFullScreenByClickingContentView = false
+    var dismissFullScreenByClickingContentView = true
     
     // MARK: - Func
     
@@ -489,6 +493,7 @@ extension Image {
 
 extension Color {
     static let alpha0_05 = Color(.init(white:0, alpha: 0.05))
+    static let alpha0_5 = Color(.init(white:0, alpha: 0.5))
 }
 
 

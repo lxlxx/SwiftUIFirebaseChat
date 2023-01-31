@@ -8,7 +8,7 @@
 import Foundation
 import Firebase
 
-protocol generalMessageContent {
+protocol generalMessageContent: Identifiable, Equatable, Hashable {
     var id: Int { get set }
     
     var fromID: String? { get set }
@@ -34,20 +34,36 @@ extension generalMessageContent {
     func chatPartnerID() -> String {
         return fromID == Auth.auth().currentUser?.uid ? toID! : fromID!
     }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
-protocol textMessageContent {
+//extension generalMessageContent: Identifiable {}
+
+protocol textMessageContent: generalMessageContent {
     var text: String? { get set}
 }
 
-protocol imageMessageContent {
+
+
+protocol imageMessageContent: generalMessageContent {
     var imageURL: String? { get set }
     var imageHeight: Int? { get set }
     var imageWidth: Int? { get set }
 }
 
-struct textMessage: generalMessageContent, textMessageContent {
+
+
+struct textMessage: textMessageContent {
     var id: Int
+    
+//    var id: Int
     
     var fromID: String?
     var timestamp: NSNumber?
@@ -70,7 +86,7 @@ struct textMessage: generalMessageContent, textMessageContent {
     }
 }
 
-struct imageMessage: generalMessageContent, imageMessageContent {
+struct imageMessage: imageMessageContent {
     var id: Int
     
     var fromID: String?
@@ -99,7 +115,7 @@ struct imageMessage: generalMessageContent, imageMessageContent {
     }
 }
 
-func messageGenerator(dict:[String: Any], id: Int) -> generalMessageContent? {
+func messageGenerator(dict:[String: Any], id: Int) -> (any generalMessageContent)? {
     
     for message in dict {
         if message.0 == "text" {

@@ -214,15 +214,7 @@ struct MainMessageView_LBTA: View {
     private var customNavBar: some View {
         HStack(spacing: 16) {
             
-            WebImage(url: URL(string: vm.currentUser?.profilImage ?? ""))
-                .resizable()
-                .frame(width: 48, height: 48)
-                .scaledToFill()
-                .clipped()
-                .cornerRadius(44)
-                .overlay(RoundedRectangle(cornerRadius: 44)
-                    .stroke(Color(.label), lineWidth: 1))
-                .shadow(radius: 5)
+            userAvatarView(url: vm.currentUser?.profilImage ?? "", size: CGSize(width: 48, height: 48))
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(vm.currentUser?.name ?? "user name")")
@@ -303,14 +295,8 @@ struct MainMessageView_LBTA: View {
                         self.navigatingToChatLogView.toggle()
                     } label: {
                         HStack(spacing: 16) {
-                            WebImage(url: URL(string: recentMessage.pic ))
-                                .resizable()
-                                .frame(width: 48, height: 48)
-                                .scaledToFill()
-                                .clipped()
-                                .cornerRadius(44)
-                                .overlay(RoundedRectangle(cornerRadius: 44)
-                                    .stroke(Color(.label), lineWidth: 1))
+                            
+                            userAvatarView(url: recentMessage.pic, size: CGSize(width: 48, height: 48))
 
                             VStack(alignment: .leading, spacing: 4 ) {
                                 Text("\(recentMessage.name)")
@@ -357,3 +343,27 @@ struct MainMessageView_Previews: PreviewProvider {
 
 
 
+
+struct userAvatarView: View {
+    var url: String
+    var size: CGSize
+    
+    var tapEnabled: Bool = false
+    
+    var body: some View {
+        WebImage(url: URL(string: url))
+            .resizable()
+            .frame(width: 48, height: 48)
+            .scaledToFill()
+            .clipped()
+            .cornerRadius(44)
+            .overlay(RoundedRectangle(cornerRadius: 44)
+                .stroke(Color(.label), lineWidth: 1))
+            .shadow(radius: 5)
+            .onTapGesture {
+                if tapEnabled {
+                    
+                }
+            }
+    }
+}
