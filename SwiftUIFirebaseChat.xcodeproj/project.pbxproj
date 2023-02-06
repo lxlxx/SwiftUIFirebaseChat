@@ -27,6 +27,7 @@
 		0E8913F9276FBACE003B03F2 /* ChatLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E8913F8276FBACD003B03F2 /* ChatLogView.swift */; };
 		0E8CA56E29189CD40085BF72 /* printLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E8CA56D29189CD40085BF72 /* printLog.swift */; };
 		0E8CA5722929C4250085BF72 /* ChatLogViewGeoInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E8CA5712929C4250085BF72 /* ChatLogViewGeoInfo.swift */; };
+		0ECBCB49298BD8E80079A6A2 /* CompressImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECBCB48298BD8E80079A6A2 /* CompressImage.swift */; };
 		0EE8F18328F684E9006564BA /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 0EE8F18228F684E9006564BA /* FirebaseAnalytics */; };
 		0EE8F18528F684E9006564BA /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0EE8F18428F684E9006564BA /* FirebaseAnalyticsSwift */; };
 		0EE8F18728F684E9006564BA /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0EE8F18628F684E9006564BA /* FirebaseAuth */; };
@@ -86,6 +87,7 @@
 		0E8913F8276FBACD003B03F2 /* ChatLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatLogView.swift; sourceTree = "<group>"; };
 		0E8CA56D29189CD40085BF72 /* printLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = printLog.swift; sourceTree = "<group>"; };
 		0E8CA5712929C4250085BF72 /* ChatLogViewGeoInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatLogViewGeoInfo.swift; sourceTree = "<group>"; };
+		0ECBCB48298BD8E80079A6A2 /* CompressImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompressImage.swift; sourceTree = "<group>"; };
 		0EF0EB5427515AAC00FC76AE /* SwiftUIFirebaseChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftUIFirebaseChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EF0EB5727515AAC00FC76AE /* SwiftUIFirebaseChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIFirebaseChatApp.swift; sourceTree = "<group>"; };
 		0EF0EB5927515AAC00FC76AE /* LoginAndRegistrationPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistrationPageView.swift; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				0E20F2212765552700AEF87E /* Indicator.swift */,
 				0E20F21F27653CF000AEF87E /* ImagePicker.swift */,
 				0EF0EB5B27515AB000FC76AE /* Assets.xcassets */,
+				0ECBCB48298BD8E80079A6A2 /* CompressImage.swift */,
 			);
 			path = "Supporting files";
 			sourceTree = "<group>";
@@ -453,6 +456,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E8CA56E29189CD40085BF72 /* printLog.swift in Sources */,
+				0ECBCB49298BD8E80079A6A2 /* CompressImage.swift in Sources */,
 				0E6485A128FFCCBB004A6413 /* ChatLogView_LBTA.swift in Sources */,
 				0E64859C28FE5E77004A6413 /* ChatUser.swift in Sources */,
 				0E64859F28FE7E2C004A6413 /* NewMessageView_LBTA.swift in Sources */,

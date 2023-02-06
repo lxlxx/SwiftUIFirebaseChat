@@ -47,11 +47,12 @@ class ChatLogViewModel_LBTA: ObservableObject {
     
     @Published var chatMessage: [Message] = []
     
+    @Published var imageSelected: UIImage?
+    
     private var cancellable = Set<AnyCancellable>()
     
     let chatUser: ChatUser?
     
-//    var chatLogRef: DatabaseReference?
     
     init(chatUser: ChatUser?) {
 //        self.chatMessage = []
@@ -107,13 +108,41 @@ class ChatLogViewModel_LBTA: ObservableObject {
     }
     
     // MARK: send func
+    func handlingSendImageMsg() {
+        guard let toID = chatUser?.uid, let imageSelected = imageSelected else { return }
+        
+        FirebaseManager.shared.sendImageMessage(opponentID: toID, image: imageSelected)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    print(error)
+                default: break
+                }
+            } receiveValue: { result in
+                if result { self.imageSelected = nil }
+            }
+            .store(in: &cancellable)
+
+    }
     
     func handlingSendChatMsg() {
-        guard let toID = chatUser?.uid else { return }
+        guard let toID = chatUser?.uid, chatText != "" else { return }
         
-        FirebaseManager.shared.sendingMessage(opponentID: toID, chatText: chatText) {
-            self.chatText = ""
-        }
+//        FirebaseManager.shared.sendTextMessage(opponentID: toID, chatText: chatText) {
+//            self.chatText = ""
+//        }
+        FirebaseManager.shared.sendTextMessage(opponentID: toID, chatText: chatText)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    print(error)
+                default: break
+                }
+            } receiveValue: { [unowned self] result in
+                if result { self.chatText = "" }
+            }
+            .store(in: &cancellable)
+
     }
 }
 
@@ -125,6 +154,8 @@ struct ChatLogView_LBTA: View {
     private let bottomViewID = "bottomView"
     
     @ObservedObject var vm: ChatLogViewModel_LBTA
+    
+    @State private var shouldShowImagePicker = false
     
     let chatUser: ChatUser?
     
@@ -156,6 +187,12 @@ struct ChatLogView_LBTA: View {
                 
             }
             
+        }
+        
+        .fullScreenCover(isPresented: $shouldShowImagePicker, onDismiss: {
+            vm.handlingSendImageMsg()
+        }) {
+            ImagePicker_LBTA(image: $vm.imageSelected)
         }
         
     }
@@ -195,9 +232,13 @@ struct ChatLogView_LBTA: View {
     
     private var messageInputView: some View {
         HStack(spacing: 16) {
-            Image(systemName: "photo.on.rectangle")
-                .font(.system(size: 24))
-                .foregroundColor(Color(.darkGray))
+            Button {
+                self.shouldShowImagePicker.toggle()
+            } label: {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(.darkGray))
+            }
             TextField("message", text: $vm.chatText)
             Button {
                 vm.handlingSendChatMsg()
@@ -319,7 +360,7 @@ struct ChatLogViewRow_Image: View, chatLogRowContent {
     private var picSize: CGSize {
         if let imageWidth = content.imageWidth, let imageHeight = content.imageHeight {
             let mainWidth = mainWindowSize.width * 0.6
-            let height = Double(mainWidth * CGFloat(imageHeight / imageWidth))
+            let height = Double(mainWidth * (imageHeight / imageWidth))
             
             return CGSize(width: mainWidth, height: height)
         }
@@ -440,8 +481,8 @@ struct FullScreenView<Content: View>: View {
                 
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.all)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         
     }
     

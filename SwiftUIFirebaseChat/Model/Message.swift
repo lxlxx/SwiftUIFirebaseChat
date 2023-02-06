@@ -144,8 +144,8 @@ struct Message: Identifiable {
     var text: String?
     
     var imageURL: String?
-    var imageHeight: Int?
-    var imageWidth: Int?
+    var imageHeight: Double?
+    var imageWidth: Double?
     
     var type: MessageTypes {
         if let _ = imageURL {
@@ -171,8 +171,8 @@ struct Message: Identifiable {
         
         text = dict[GlobalString.text] as? String
         imageURL = dict[GlobalString.message_imageURL] as? String
-        imageHeight = dict[GlobalString.message_imageHeight] as? Int
-        imageWidth = dict[GlobalString.message_imageWidth] as? Int
+        imageHeight = dict[GlobalString.message_imageHeight] as? Double
+        imageWidth = dict[GlobalString.message_imageWidth] as? Double
     }
     
     

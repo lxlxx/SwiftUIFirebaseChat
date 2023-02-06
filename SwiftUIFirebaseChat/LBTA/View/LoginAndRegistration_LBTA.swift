@@ -194,7 +194,7 @@ struct LoginAndRegistration_LBTA: View {
         }
         //        .navigationSplitViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $shouldShowImagePicker) {
-            Text("testing")
+//            Text("testing")
             ImagePicker_LBTA(image: self.$avatarImage)
         }
         .onReceive(vm.$loggedIn) { loggedIn in

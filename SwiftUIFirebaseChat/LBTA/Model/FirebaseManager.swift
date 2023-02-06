@@ -515,37 +515,101 @@ class FirebaseManager: NSObject {
     
     // MARK: send func
     
-    func sendingMessage(opponentID: String, chatText: String, complete:@escaping () -> ()) {
-        guard let fromID = FirebaseManager.shared.auth.currentUser?.uid else { return }
-        let toID = opponentID
-        
-        let ref = FirebaseManager.shared.database.reference().child(GlobalString.messageDir)
-        let childRef = ref.childByAutoId()
-        let timestamp: NSNumber = NSNumber(integerLiteral: Int(Date().timeIntervalSince1970))
-        let values = [GlobalString.toID: toID,
-                      GlobalString.fromID: fromID,
-                      GlobalString.timestamp: timestamp,
-                      GlobalString.text: chatText as NSObject] as [String : Any]
-        
-//        contents.forEach{ values[$0] = $1 }
-        
-        childRef.updateChildValues(values){ error, ref in
-            if let err = error {
-                print(err); return
+    func sendTextMessage(opponentID: String, chatText: String) -> Future<Bool, Error> {
+        Future { [unowned self] promise in
+            self.sendingMessage(opponentID: opponentID, contents: [GlobalString.text: chatText as NSObject])
+                .sink { completion in
+                    switch completion {
+                    case let .failure(error):
+                        promise(.failure(error))
+                    default: break
+                    }
+                } receiveValue: { result in
+                    promise(.success(result))
+                }
+                .store(in: &self.cancellable)
+        }
+    }
+    
+    func sendImageMessage(opponentID: String, image: UIImage) -> Future<Bool, Error> {
+        Future { [unowned self] promise in
+            storageImage(image)
+                .flatMap { contents -> AnyPublisher<Bool, Error> in
+                    self.sendingMessage(opponentID: opponentID, contents: contents).eraseToAnyPublisher()
+                }
+                .sink { completion in
+                    switch completion {
+                    case let .failure(error):
+                        promise(.failure(error))
+                    default: break
+                    }
+                } receiveValue: { result in
+                    promise(.success(result))
+                }
+                .store(in: &self.cancellable)
+        }
+    }
+    
+    func storageImage(_ imageWillUpload: UIImage) -> Future<[String: NSObject], Error> {
+        Future { promise in
+            let imageName = UUID().uuidString
+            let ref = Storage.storage().reference().child(GlobalString.DB_message_image).child("\(imageName).png")
+            
+            if let compressedImage = compressImage(imageWillUpload) {
+                ref.putData(compressedImage, metadata: nil, completion: { (metadata, error) in
+                    if error != nil {
+                        print(error!) ;
+                        return
+                    }
+                    
+                    ref.downloadURL(completion:{ url, error in
+                        if error != nil, url == nil {
+                            print(error!) ;
+                            return
+                        }
+                        if let imageURL = url?.absoluteString {
+                            let contents = [GlobalString.message_imageURL: imageURL as NSObject,
+                                            GlobalString.message_imageWidth: imageWillUpload.size.width as NSObject, GlobalString.message_imageHeight: imageWillUpload.size.height as NSObject]
+                            promise(.success(contents))
+                        }
+                    })
+                })
             }
+        }
+    }
+    
+    func sendingMessage(opponentID: String, contents: [String: NSObject]) -> Future<Bool, Error> {
+        Future { promise in
+            guard let fromID = FirebaseManager.shared.auth.currentUser?.uid else { return }
+            let toID = opponentID
             
-            guard let messageID = childRef.key else { return }
-            let userMessageDir = FirebaseManager.shared.database.reference().child(GlobalString.userMessageDir)
+            let ref = FirebaseManager.shared.database.reference().child(GlobalString.messageDir)
+            let childRef = ref.childByAutoId()
+            let timestamp: NSNumber = NSNumber(integerLiteral: Int(Date().timeIntervalSince1970))
+            var values = [GlobalString.toID: toID,
+                          GlobalString.fromID: fromID,
+                          GlobalString.timestamp: timestamp] as [String : Any]
             
-            let fromUserIDMessageRef = userMessageDir.child(fromID).child(toID)
-            let toUserIDMessageRef = userMessageDir.child(toID).child(fromID)
+            contents.forEach{ values[$0] = $1 }
             
-            fromUserIDMessageRef.updateChildValues([messageID: timestamp])
-            toUserIDMessageRef.updateChildValues([messageID: timestamp])
-            
-//            self.chatText = ""
-            complete()
-            
+            childRef.updateChildValues(values){ error, ref in
+                if let err = error {
+                    print(err);
+                    promise(.failure(err))
+                }
+                
+                guard let messageID = childRef.key else { return }
+                let userMessageDir = FirebaseManager.shared.database.reference().child(GlobalString.userMessageDir)
+                
+                let fromUserIDMessageRef = userMessageDir.child(fromID).child(toID)
+                let toUserIDMessageRef = userMessageDir.child(toID).child(fromID)
+                
+                fromUserIDMessageRef.updateChildValues([messageID: timestamp])
+                toUserIDMessageRef.updateChildValues([messageID: timestamp])
+                
+                promise(.success(true))
+                
+            }
         }
     }
     
