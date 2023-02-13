@@ -348,7 +348,9 @@ struct userAvatarView: View {
     var url: String
     var size: CGSize
     
-    var tapEnabled: Bool = false
+    var tapEnabled: Bool = true
+    
+    @State var fullScreenIsPresented: Bool = false
     
     var body: some View {
         WebImage(url: URL(string: url))
@@ -362,7 +364,15 @@ struct userAvatarView: View {
             .shadow(radius: 5)
             .onTapGesture {
                 if tapEnabled {
-                    
+                    fullScreenIsPresented = true
+                }
+            }
+            .fullScreenCover(isPresented: $fullScreenIsPresented) {
+                FullScreenView {
+                    WebImage(url: URL(string: url))
+                        .resizable()
+                        .scaledToFit()
+                        .clipped()
                 }
             }
     }

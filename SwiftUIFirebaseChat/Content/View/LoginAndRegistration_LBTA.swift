@@ -34,6 +34,8 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     
     @Published var submitEnabled = false
     
+    @Published var programViewEnabled = false
+    
     // MARK: - Func
     func login() {
         FirebaseManager.shared.login_combine(email: self.email, password: self.password)
@@ -41,6 +43,7 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 switch completion {
                 case let .failure(error):
                     self?.statusMessage = String(describing: error)
+                    self?.programViewEnabled = false
                 default: break
                 }
             } receiveValue: { [weak self] result in
@@ -76,6 +79,7 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 switch completion {
                 case let .failure(error):
                     self?.statusMessage = String(describing: error)
+                    self?.programViewEnabled = false
                 default: break
                 }
             } receiveValue: { [weak self] result in
@@ -85,22 +89,6 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     
     
     init() {
-        $password
-            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
-            .sink { password in
-                print("password \(password)")
-            }
-            .store(in: &cancellable)
-//        $password
-//            .combineLatest($confirmPassword)
-//            .allSatisfy { password, confirmPassword in
-//                print("validatedPassword, \(password), \(confirmPassword)")
-//                return password.count > 0 && password == confirmPassword
-//            }
-//            .sink { [unowned self] result in
-//                self.validatedPassword = result
-//            }
-//            .store(in: &cancellable)
         
         $password
             .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
@@ -144,12 +132,11 @@ struct LoginAndRegistration_LBTA: View {
     
     @State private var avatarImage: UIImage?
     
-    @State private var programViewEnabled = false
     
     // MARK: - Func
     
     private func handlingSubmitAction() {
-        programViewEnabled = true
+        vm.programViewEnabled = true
         if vm.isLoginMode {
             vm.login()
         } else {
@@ -158,7 +145,7 @@ struct LoginAndRegistration_LBTA: View {
     }
     
     private func dismissView() {
-        programViewEnabled = false
+        vm.programViewEnabled = false
         presentationMode.wrappedValue.dismiss()
     }
     
@@ -204,7 +191,7 @@ struct LoginAndRegistration_LBTA: View {
     
     @ViewBuilder
     private var programView: some View {
-        if programViewEnabled {
+        if vm.programViewEnabled {
             VStack {
                 Text("loading")
                 ProgressView()
@@ -240,6 +227,7 @@ struct LoginAndRegistration_LBTA: View {
         }
         .padding(12)
         .background(Color.white)
+        .autocapitalization(UITextAutocapitalizationType.none)
     }
     
     @ViewBuilder
