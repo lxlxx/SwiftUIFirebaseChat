@@ -9,16 +9,18 @@ import Foundation
 import Firebase
 import FirebaseStorage
 import Combine
+import FirebaseAuth
 
 // https://stackoverflow.com/questions/31443645/simplest-way-to-throw-an-error-exception-with-a-custom-message-in-swift
 extension String: Error {}
 
-class FirebaseManager: NSObject {
+class FirebaseManager: NSObject, FirebaseServices {
     
     // MARK: - Data
     let auth: Auth
     let storage: Storage
     let database: Database
+    
     
     static let shared = FirebaseManager()
     
@@ -36,6 +38,7 @@ class FirebaseManager: NSObject {
                 promise(.success(true))
             }
         }
+        
     }
     
     func login(email: String, password: String, complete: @escaping () -> () )  {

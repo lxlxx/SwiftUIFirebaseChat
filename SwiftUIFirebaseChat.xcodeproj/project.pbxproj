@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E0E083A29B2073800137888 /* FirebaseServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083929B2073800137888 /* FirebaseServices.swift */; };
+		0E0E083C29B207FE00137888 /* MockFirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083B29B207FE00137888 /* MockFirebaseManager.swift */; };
+		0E0E083E29B4BB6700137888 /* MockFirebaseAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */; };
 		0E20F22027653CF100AEF87E /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F21F27653CF000AEF87E /* ImagePicker.swift */; };
 		0E20F2222765552700AEF87E /* Indicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F2212765552700AEF87E /* Indicator.swift */; };
 		0E64859328F93621004A6413 /* LoginAndRegistration_LBTA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */; };
@@ -67,6 +70,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0E0E083929B2073800137888 /* FirebaseServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseServices.swift; sourceTree = "<group>"; };
+		0E0E083B29B207FE00137888 /* MockFirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFirebaseManager.swift; sourceTree = "<group>"; };
+		0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFirebaseAuth.swift; sourceTree = "<group>"; };
 		0E20F21F27653CF000AEF87E /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		0E20F2212765552700AEF87E /* Indicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Indicator.swift; sourceTree = "<group>"; };
 		0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistration_LBTA.swift; sourceTree = "<group>"; };
@@ -140,6 +146,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0E0E083729B2067900137888 /* FirebaseManagerTests */ = {
+			isa = PBXGroup;
+			children = (
+				0ECBCB4A299257790079A6A2 /* FirebaseManager_Tests.swift */,
+				0E0E083B29B207FE00137888 /* MockFirebaseManager.swift */,
+				0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */,
+			);
+			path = FirebaseManagerTests;
+			sourceTree = "<group>";
+		};
+		0E0E083829B2070B00137888 /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				0E64859828FBC798004A6413 /* FirebaseManager.swift */,
+				0E0E083929B2073800137888 /* FirebaseServices.swift */,
+			);
+			path = Firebase;
+			sourceTree = "<group>";
+		};
 		0E20F21C27625E4A00AEF87E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,8 +184,8 @@
 		0E64859A28FE5E67004A6413 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				0E0E083829B2070B00137888 /* Firebase */,
 				0E64859B28FE5E77004A6413 /* ChatUser.swift */,
-				0E64859828FBC798004A6413 /* FirebaseManager.swift */,
 				0E74787A2939D47A00E76AA6 /* Message.swift */,
 				0E74787E293F24F500E76AA6 /* RecentMessage.swift */,
 			);
@@ -261,7 +286,7 @@
 			isa = PBXGroup;
 			children = (
 				0EF0EB6927515AB100FC76AE /* SwiftUIFirebaseChatTests.swift */,
-				0ECBCB4A299257790079A6A2 /* FirebaseManager_Tests.swift */,
+				0E0E083729B2067900137888 /* FirebaseManagerTests */,
 				0EF0EB6B27515AB100FC76AE /* Info.plist */,
 			);
 			path = SwiftUIFirebaseChatTests;
@@ -453,6 +478,7 @@
 				0E64859C28FE5E77004A6413 /* ChatUser.swift in Sources */,
 				0E64859F28FE7E2C004A6413 /* NewMessageView_LBTA.swift in Sources */,
 				0E64859928FBC798004A6413 /* FirebaseManager.swift in Sources */,
+				0E0E083A29B2073800137888 /* FirebaseServices.swift in Sources */,
 				0E6485A42907936C004A6413 /* TestForEveryThing.swift in Sources */,
 				0E74787B2939D47A00E76AA6 /* Message.swift in Sources */,
 				0E8913EC276A5EEC003B03F2 /* ChatAppNavigationView.swift in Sources */,
@@ -477,6 +503,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				0ECBCB4B299257790079A6A2 /* FirebaseManager_Tests.swift in Sources */,
+				0E0E083C29B207FE00137888 /* MockFirebaseManager.swift in Sources */,
+				0E0E083E29B4BB6700137888 /* MockFirebaseAuth.swift in Sources */,
 				0EF0EB6A27515AB100FC76AE /* SwiftUIFirebaseChatTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

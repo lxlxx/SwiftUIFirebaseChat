@@ -63,6 +63,7 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
         
         if avatarImage == nil {
             self.statusMessage = "You must select an avatar image"
+            programViewEnabled = false
         }
         guard let imageData = avatarImage?.jpegData(compressionQuality: 0.2) else { return }
         FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
@@ -84,7 +85,30 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] result in
                 self?.loggedIn = result
-            }.store(in: &cancellable)
+            }
+            .store(in: &cancellable)
+        
+//        FirebaseManager.shared.creatingNewAccount_combine(email: self.email, password: self.password)
+//            .flatMap { result  in
+//                FirebaseManager.shared.persistingImageToStorage_combine(imageData: imageData)
+//            }
+//            .flatMap { [unowned self] (uid, url) in
+//                FirebaseManager.shared.updatingUserInformation_combine(email: self.email,
+//                                                                       uid: uid,
+//                                                                       imageProfileUrl: url)
+//            }
+//            .sink { [weak self] completion in
+//                switch completion {
+//                case let .failure(error):
+//                    self?.statusMessage = String(describing: error)
+//                    self?.programViewEnabled = false
+//                default: break
+//                }
+//            } receiveValue: { [weak self] result in
+//                self?.loggedIn = result
+//            }
+//            .store(in: &cancellable)
+            
     }
     
     

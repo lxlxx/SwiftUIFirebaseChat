@@ -167,7 +167,12 @@ struct MainMessageView_LBTA: View {
     // MARK: - Func
     
     private func createChatLogViewModel_LBTA() -> ChatLogViewModel_LBTA {
-        return ChatLogViewModel_LBTA(chatUser: self.currentUser)
+        var chatLogVM = ChatLogViewModel_LBTA(chatUser: self.currentUser)
+//        guard let opponentMsg = vm.recentOpponentMessage.first(where: { $0.uid == currentUser?.uid }) else {
+//            return chatLogVM
+//        }
+//        chatLogVM.chatMessage = opponentMsg.message
+        return chatLogVM
     }
     
     private func createChatLogView_LBTA(vm: ChatLogViewModel_LBTA) -> some View {
@@ -200,14 +205,15 @@ struct MainMessageView_LBTA: View {
                 }
             }
             .navigationBarHidden(true)
-//            .edgesIgnoringSafeArea(.all)
-
             .overlay(
                 newMessageButton, alignment: .bottom
             )
+            .navigationViewStyle(StackNavigationViewStyle())
+            
             .onDisappear {
 //                vm.userRef?.removeAllObservers()
             }
+        //            .edgesIgnoringSafeArea(.all)
 
     }
     
