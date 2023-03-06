@@ -48,7 +48,8 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] result in
                 self?.loggedIn = result
-            }.store(in: &cancellable)
+            }
+            .store(in: &cancellable)
         
     }
     

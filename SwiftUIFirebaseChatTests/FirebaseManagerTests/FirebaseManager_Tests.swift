@@ -12,6 +12,8 @@ import Combine
 @available(iOS 16.0, *)
 final class FirebaseManager_Tests: XCTestCase {
     private var cancellable = Set<AnyCancellable>()
+    let test_email = "testuser@example.com"
+    let test_pw = "testing"
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -24,20 +26,21 @@ final class FirebaseManager_Tests: XCTestCase {
         
     }
 
-    func test_FirebaseManager_LoginCombine_Failed_badEmail() throws {
+    func test_FirebaseManager_creatingNewAccount_combine_Failed_badEmail() throws {
         // Given
-        let test_email = "testuser@examplecom"
+        let badEmail = "testuser@examplecom"
         let test_pw = "testing"
         
+        let mockFirebaseManager = MockFirebaseManager()
 
         // When
-        let mockFirebaseManager = MockFirebaseManager()
-        mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        mockFirebaseManager.creatingNewAccount_combine(email: badEmail, password: test_pw)
             .sink { completion in
                 switch completion {
                 case let .failure(error):
                     // Then
-                    XCTAssertNotNil(error.localizedDescription.ranges(of: "The email address is badly formatted."))
+                    XCTAssertTrue(error.localizedDescription.contains("The email address is badly formatted."))
+                    
                 default: break
                 }
             } receiveValue: { _ in
@@ -45,33 +48,162 @@ final class FirebaseManager_Tests: XCTestCase {
             .store(in: &cancellable)
     }
     
-    func test_FirebaseManager_LoginCombine_Failed_duplicate() throws {
+    func test_FirebaseManager_creatingNewAccount_combine_Failed_duplicate() throws {
         // Given
-        let test_email = "testuser@example.com"
-        let test_pw = "testing"
-        
-
-        // When
         let mockFirebaseManager = MockFirebaseManager()
         let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+
+        // When
         mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
                 case let .failure(error):
                     // Then
-                    XCTAssertNotNil(error.localizedDescription.ranges(of: "Failed to create user The email address is already in use by another account."))
+                    XCTAssertTrue(error.localizedDescription.contains("Failed to create user The email address is already in use by another account."))
                 default: break
                 }
             } receiveValue: { _ in
             }
             .store(in: &cancellable)
     }
+    
+    func test_FirebaseManager_creatingNewAccount_combine_Success() throws {
+        // Given
+        let mockFirebaseManager = MockFirebaseManager()
+        
+        // When
+        mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(_): break
+                default: break
+                }
+            } receiveValue: { result in
+                // Then
+                XCTAssertTrue(result)
+            }
+            .store(in: &cancellable)
+    }
+    
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func test_FirebaseManager_login_combine_Failed_incorrect_email() throws {
+        // Given
+        let incorrent_email = "incorrent_email@example.com"
+        
+        let mockFirebaseManager = MockFirebaseManager()
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        
+        // When
+        
+        mockFirebaseManager.login_combine(email: incorrent_email, password: test_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    // Then
+                    XCTAssertTrue(error.localizedDescription.contains("Failed to login user The password is invalid or the user does not have a password"))
+                default: break
+                }
+            } receiveValue: { _ in
+            }
+            .store(in: &cancellable)
+
+        
+    }
+    
+    func test_FirebaseManager_login_combine_Failed_incorrect_password() throws {
+        /// Given
+        let test_email = "testuser@example.com"
+        let incorrent_pw = "incorrent"
+        
+        let mockFirebaseManager = MockFirebaseManager()
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        
+        // When
+        mockFirebaseManager.login_combine(email: test_email, password: incorrent_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    // Then
+                    XCTAssertTrue(error.localizedDescription.contains("Failed to login user The password is invalid or the user does not have a password"))
+                default: break
+                }
+            } receiveValue: { _ in
+            }
+            .store(in: &cancellable)
+
+        
+    }
+    
+    func test_FirebaseManager_login_combine_Failed_empty_email_or_password() throws {
+        /// Given
+        let empty_email = ""
+        let empty_pw = ""
+        
+        let mockFirebaseManager = MockFirebaseManager()
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        
+        // When
+        
+        mockFirebaseManager.login_combine(email: test_email, password: empty_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    // Then
+                    XCTAssertTrue(error.localizedDescription.contains("Please enter an email and password."))
+                default: break
+                }
+            } receiveValue: { _ in
+            }
+            .store(in: &cancellable)
+
+        
+    }
+    
+    func test_FirebaseManager_login_combine_Failed_network_error() throws {
+        // Given
+        let network_error = "networkerror@example.com"
+        let mockFirebaseManager = MockFirebaseManager()
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        
+        // When
+        
+        mockFirebaseManager.login_combine(email: network_error, password: test_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    // Then
+                    XCTAssertTrue(error.localizedDescription.contains("The Internet connection appears to be offline."))
+                default: break
+                }
+            } receiveValue: { _ in
+            }
+            .store(in: &cancellable)
+
+        
+        // Then
+    }
+    
+    func test_FirebaseManager_login_combine_Success() throws {
+        // Given
+        let test_email = "testuser@example.com"
+        let test_pw = "testing"
+        
+        let mockFirebaseManager = MockFirebaseManager()
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        // When
+        mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(_): break
+                default: break
+                }
+            } receiveValue: { result in
+                // Then
+                XCTAssertTrue(result)
+            }
+            .store(in: &cancellable)
+        
+        // Then
     }
 
 }

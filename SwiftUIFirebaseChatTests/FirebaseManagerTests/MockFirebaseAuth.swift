@@ -94,6 +94,20 @@ class MockFirebaseAuth {
     
     func signIn(withEmail email: String, password: String, completion: @escaping (DataResult) -> Void?)
     {
+        // Test case for network error
+        if email == "networkerror@example.com" {
+            let error = NSError(domain: "", code: -1009, userInfo: [NSLocalizedDescriptionKey: "The Internet connection appears to be offline."])
+            completion(DataResult((nil, error), status: 400))
+            return
+        }
+        
+        // Test case for empty email or password
+        if email.isEmpty || password.isEmpty {
+            let error = NSError(domain: "", code: 17011, userInfo: [NSLocalizedDescriptionKey: "Please enter an email and password."])
+            completion(DataResult((nil, error), status: 400))
+            return
+        }
+        
         // Test case for incorrect email
         if (users[email] == nil) {
             let error = NSError(domain: "", code: 17008, userInfo: [NSLocalizedDescriptionKey: "Failed to login user The password is invalid or the user does not have a password"])
@@ -108,19 +122,6 @@ class MockFirebaseAuth {
             return
         }
         
-        // Test case for empty email or password
-        if email.isEmpty || password.isEmpty {
-            let error = NSError(domain: "", code: 17011, userInfo: [NSLocalizedDescriptionKey: "Please enter an email and password."])
-            completion(DataResult((nil, error), status: 400))
-            return
-        }
-        
-        // Test case for network error
-        if email == "networkerror@example.com" {
-            let error = NSError(domain: "", code: -1009, userInfo: [NSLocalizedDescriptionKey: "The Internet connection appears to be offline."])
-            completion(DataResult((nil, error), status: 400))
-            return
-        }
         
         // All other cases return success
         completion(DataResult(("success", nil), status: 200))
