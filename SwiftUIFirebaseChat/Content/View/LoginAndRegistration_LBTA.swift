@@ -21,6 +21,7 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     @Published var password = ""
     @Published var confirmPassword = ""
     @Published var statusMessage = ""
+    @Published var passwordStatusMessage = ""
     
     @Published var loggedIn = false
     
@@ -35,6 +36,8 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     @Published var submitEnabled = false
     
     @Published var programViewEnabled = false
+    
+    private var firebaseService: FirebaseServices
     
     // MARK: - Func
     func login() {
@@ -113,13 +116,15 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     }
     
     
-    init() {
-        
+    init(firebaseService: FirebaseServices) {
+        self.firebaseService = firebaseService
         $password
-            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .debounce(for: .seconds(1), scheduler: RunLoop.main)
             .combineLatest($confirmPassword)
             .sink{ [unowned self] password, confirmPassword in
                 self.validatedPassword = password.count > 0 && password == confirmPassword
+                var showPasswordMessage = password.count > 0 && confirmPassword.count > 0 && password != confirmPassword
+                self.passwordStatusMessage = showPasswordMessage ? "Password not the same" : ""
             }
             .store(in: &cancellable)
 
@@ -142,6 +147,8 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellable)
+        
+        
     }
     
 }
@@ -151,7 +158,7 @@ struct LoginAndRegistration_LBTA: View {
     // MARK: - Data
     @Environment(\.presentationMode) var presentationMode
     
-    @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel()
+    @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel(firebaseService: FirebaseManager())
     
     @State private var shouldShowImagePicker = false
     
@@ -190,6 +197,8 @@ struct LoginAndRegistration_LBTA: View {
                         userInformationTextFields
                         
                         submitButton
+                        
+                        passwordStatusMessageTextView
                         
                         loginStatusMessageTextView
                         
@@ -298,6 +307,11 @@ struct LoginAndRegistration_LBTA: View {
         }
         .disabled(!vm.submitEnabled)
         
+    }
+    
+    private var passwordStatusMessageTextView: some View {
+        Text(vm.passwordStatusMessage)
+            .foregroundColor(.red)
     }
     
     private var loginStatusMessageTextView: some View {

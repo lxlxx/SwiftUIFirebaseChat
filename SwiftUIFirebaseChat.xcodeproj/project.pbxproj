@@ -10,6 +10,8 @@
 		0E0E083A29B2073800137888 /* FirebaseServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083929B2073800137888 /* FirebaseServices.swift */; };
 		0E0E083C29B207FE00137888 /* MockFirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083B29B207FE00137888 /* MockFirebaseManager.swift */; };
 		0E0E083E29B4BB6700137888 /* MockFirebaseAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */; };
+		0E0E084229B8B3F900137888 /* UserAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E084129B8B3F900137888 /* UserAvatarView.swift */; };
+		0E0E084529B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E084429B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift */; };
 		0E20F22027653CF100AEF87E /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F21F27653CF000AEF87E /* ImagePicker.swift */; };
 		0E20F2222765552700AEF87E /* Indicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F2212765552700AEF87E /* Indicator.swift */; };
 		0E64859328F93621004A6413 /* LoginAndRegistration_LBTA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */; };
@@ -73,6 +75,8 @@
 		0E0E083929B2073800137888 /* FirebaseServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseServices.swift; sourceTree = "<group>"; };
 		0E0E083B29B207FE00137888 /* MockFirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFirebaseManager.swift; sourceTree = "<group>"; };
 		0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFirebaseAuth.swift; sourceTree = "<group>"; };
+		0E0E084129B8B3F900137888 /* UserAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAvatarView.swift; sourceTree = "<group>"; };
+		0E0E084429B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistration_ViewModel_Tests.swift; sourceTree = "<group>"; };
 		0E20F21F27653CF000AEF87E /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		0E20F2212765552700AEF87E /* Indicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Indicator.swift; sourceTree = "<group>"; };
 		0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistration_LBTA.swift; sourceTree = "<group>"; };
@@ -165,6 +169,14 @@
 			path = Firebase;
 			sourceTree = "<group>";
 		};
+		0E0E084329B8B73600137888 /* LoginAndRegistration_ViewModel_Tests */ = {
+			isa = PBXGroup;
+			children = (
+				0E0E084429B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift */,
+			);
+			path = LoginAndRegistration_ViewModel_Tests;
+			sourceTree = "<group>";
+		};
 		0E20F21C27625E4A00AEF87E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,6 +212,7 @@
 				0E64859628FBA22B004A6413 /* MainMessageView_LBTA.swift */,
 				0E64859E28FE7E2C004A6413 /* NewMessageView_LBTA.swift */,
 				0E64859428FA867C004A6413 /* ImagePicker_LBTA.swift */,
+				0E0E084129B8B3F900137888 /* UserAvatarView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -286,6 +299,7 @@
 			isa = PBXGroup;
 			children = (
 				0EF0EB6927515AB100FC76AE /* SwiftUIFirebaseChatTests.swift */,
+				0E0E084329B8B73600137888 /* LoginAndRegistration_ViewModel_Tests */,
 				0E0E083729B2067900137888 /* FirebaseManagerTests */,
 				0EF0EB6B27515AB100FC76AE /* Info.plist */,
 			);
@@ -488,6 +502,7 @@
 				0E64859328F93621004A6413 /* LoginAndRegistration_LBTA.swift in Sources */,
 				0EF0EB5A27515AAC00FC76AE /* LoginAndRegistrationPageView.swift in Sources */,
 				0E64859728FBA22B004A6413 /* MainMessageView_LBTA.swift in Sources */,
+				0E0E084229B8B3F900137888 /* UserAvatarView.swift in Sources */,
 				0E8913EA276A38E6003B03F2 /* GlobalString.swift in Sources */,
 				0E20F22027653CF100AEF87E /* ImagePicker.swift in Sources */,
 				0EF809092994EBE500177C2F /* Extensions.swift in Sources */,
@@ -502,6 +517,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0E0E084529B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift in Sources */,
 				0ECBCB4B299257790079A6A2 /* FirebaseManager_Tests.swift in Sources */,
 				0E0E083C29B207FE00137888 /* MockFirebaseManager.swift in Sources */,
 				0E0E083E29B4BB6700137888 /* MockFirebaseAuth.swift in Sources */,

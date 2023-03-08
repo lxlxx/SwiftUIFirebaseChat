@@ -87,7 +87,7 @@ struct NewMessageViewRowViewDetail: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            userAvatarView(url: user.profilImage, size: CGSize(width: 48, height: 48))
+            UserAvatarView(url: user.profilImage, size: CGSize(width: 48, height: 48))
             
             Text("\(user.name)").foregroundColor(.black)
             Spacer()

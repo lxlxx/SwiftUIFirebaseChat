@@ -9,7 +9,7 @@ import XCTest
 import Combine
 @testable import SwiftUIFirebaseChat
 
-@available(iOS 16.0, *)
+
 final class FirebaseManager_Tests: XCTestCase {
     private var cancellable = Set<AnyCancellable>()
     let test_email = "testuser@example.com"
@@ -75,7 +75,7 @@ final class FirebaseManager_Tests: XCTestCase {
         mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
-                case let .failure(_): break
+                case .failure(_): break
                 default: break
                 }
             } receiveValue: { result in
@@ -155,6 +155,18 @@ final class FirebaseManager_Tests: XCTestCase {
             } receiveValue: { _ in
             }
             .store(in: &cancellable)
+        
+        mockFirebaseManager.login_combine(email: empty_email, password: test_pw)
+            .sink { completion in
+                switch completion {
+                case let .failure(error):
+                    // Then
+                    XCTAssertTrue(error.localizedDescription.contains("Please enter an email and password."))
+                default: break
+                }
+            } receiveValue: { _ in
+            }
+            .store(in: &cancellable)
 
         
     }
@@ -194,7 +206,7 @@ final class FirebaseManager_Tests: XCTestCase {
         mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
-                case let .failure(_): break
+                case .failure(_): break
                 default: break
                 }
             } receiveValue: { result in

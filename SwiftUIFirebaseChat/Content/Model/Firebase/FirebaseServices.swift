@@ -10,6 +10,8 @@ import Combine
 
 protocol FirebaseServices {
     
+//    static var shared: FirebaseServices { get }
+    
     func login_combine(email: String, password: String) -> Future<Bool, Error>
     
     func creatingNewAccount_combine(email: String, password: String) -> Future<Bool, Error>

@@ -148,13 +148,20 @@ class FirebaseManager: NSObject, FirebaseServices {
         }
     }
     
-    func updatingUserInformation_combine(email: String, uid: String, imageProfileUrl: URL, name: String = "", about: String = "") -> Future<Bool, Error> {
+    func updatingUserInformation_combine(email: String,
+                                         uid: String,
+                                         imageProfileUrl: URL,
+                                         name: String = "",
+                                         about: String = "") -> Future<Bool, Error>
+    {
         
         Future { promise in
             let ref = FirebaseManager.shared.database.reference()
             let usersRef = ref.child("users").child(uid)
             
-            let value = ["email": email, "name": name, "about": about, "pic": "\(imageProfileUrl)"] as [String : Any]
+            let value = [GlobalString.email: email,
+                         GlobalString.DB_user_userName: email,
+                         GlobalString.DB_user_profileImageUrl: "\(imageProfileUrl)"] as [String : Any]
             
             usersRef.updateChildValues(value, withCompletionBlock: { (updateChildValuesErr, ref) in
                 
@@ -166,11 +173,18 @@ class FirebaseManager: NSObject, FirebaseServices {
         }
     }
     
-    func updatingUserInformation(email: String, uid: String, imageProfileUrl: URL, name: String = "", about: String = "", complete: @escaping () -> ()) {
+    func updatingUserInformation(email: String,
+                                 uid: String,
+                                 imageProfileUrl: URL,
+                                 name: String = "",
+                                 about: String = "", complete: @escaping () -> ())
+    {
         let ref = FirebaseManager.shared.database.reference()
         let usersRef = ref.child("users").child(uid)
         
-        let value = ["email": email, "name": name, "about": about, "pic": "\(imageProfileUrl)"] as [String : Any]
+        let value = [GlobalString.email: email,
+                     GlobalString.DB_user_userName: email,
+                     GlobalString.DB_user_profileImageUrl: "\(imageProfileUrl)"] as [String : Any]
         
         usersRef.updateChildValues(value, withCompletionBlock: { (updateChildValuesErr, ref) in
             
