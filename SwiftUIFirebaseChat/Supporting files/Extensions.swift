@@ -88,3 +88,14 @@ extension StringProtocol {
         return result
     }
 }
+
+extension String {
+    func emailReplacement() -> String {
+        let mailPattern = "@([\\w-]+\\.)+[\\w-]{2,4}$"
+        
+        let regex = try? NSRegularExpression(pattern: mailPattern, options: NSRegularExpression.Options.caseInsensitive)
+        let range = NSMakeRange(0, self.count)
+        let replacedString = regex?.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "")
+        return replacedString ?? self
+    }
+}

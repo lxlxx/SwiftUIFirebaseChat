@@ -223,7 +223,7 @@ struct MainMessageView_LBTA: View {
             UserAvatarView(url: vm.currentUser?.profilImage ?? "", size: CGSize(width: 48, height: 48))
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(vm.currentUser?.name ?? "user name")")
+                Text("\(vm.currentUser?.name.emailReplacement() ?? "user name")")
                     .font(.system(size: 24, weight: .bold))
                 HStack {
                     Circle()

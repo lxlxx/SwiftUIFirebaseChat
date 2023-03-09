@@ -37,10 +37,9 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     
     @Published var programViewEnabled = false
     
-    private var firebaseService: FirebaseServices
-    
     // MARK: - Func
     func login() {
+        
         FirebaseManager.shared.login_combine(email: self.email, password: self.password)
             .sink { [weak self] completion in
                 switch completion {
@@ -116,14 +115,14 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     }
     
     
-    init(firebaseService: FirebaseServices) {
-        self.firebaseService = firebaseService
+    init() {
+
         $password
             .debounce(for: .seconds(1), scheduler: RunLoop.main)
             .combineLatest($confirmPassword)
             .sink{ [unowned self] password, confirmPassword in
                 self.validatedPassword = password.count > 0 && password == confirmPassword
-                var showPasswordMessage = password.count > 0 && confirmPassword.count > 0 && password != confirmPassword
+                let showPasswordMessage = password.count > 0 && confirmPassword.count > 0 && password != confirmPassword
                 self.passwordStatusMessage = showPasswordMessage ? "Password not the same" : ""
             }
             .store(in: &cancellable)
@@ -158,7 +157,7 @@ struct LoginAndRegistration_LBTA: View {
     // MARK: - Data
     @Environment(\.presentationMode) var presentationMode
     
-    @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel(firebaseService: FirebaseManager())
+    @StateObject private var vm = LoginAndRegistration_LBTA_ViewModel()
     
     @State private var shouldShowImagePicker = false
     
