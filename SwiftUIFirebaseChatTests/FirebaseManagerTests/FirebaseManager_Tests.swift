@@ -197,13 +197,11 @@ final class FirebaseManager_Tests: XCTestCase {
     
     func test_FirebaseManager_login_combine_Success() throws {
         // Given
-        let test_email = "testuser@example.com"
-        let test_pw = "testing"
         
         let mockFirebaseManager = MockFirebaseManager()
         let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
         // When
-        mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        mockFirebaseManager.login_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
                 case .failure(_): break

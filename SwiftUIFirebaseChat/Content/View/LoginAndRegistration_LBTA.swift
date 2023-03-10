@@ -37,10 +37,13 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     
     @Published var programViewEnabled = false
     
+    private var firebaseServices: FirebaseServices
+    
+    
     // MARK: - Func
     func login() {
         
-        FirebaseManager.shared.login_combine(email: self.email, password: self.password)
+        firebaseServices.login_combine(email: self.email, password: self.password)
             .sink { [weak self] completion in
                 switch completion {
                 case let .failure(error):
@@ -115,7 +118,8 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
     }
     
     
-    init() {
+    init(firebaseServices: FirebaseServices = FirebaseManagerDI()) {
+        self.firebaseServices = firebaseServices
 
         $password
             .debounce(for: .seconds(1), scheduler: RunLoop.main)
@@ -168,6 +172,7 @@ struct LoginAndRegistration_LBTA: View {
     
     private func handlingSubmitAction() {
         vm.programViewEnabled = true
+        
         if vm.isLoginMode {
             vm.login()
         } else {

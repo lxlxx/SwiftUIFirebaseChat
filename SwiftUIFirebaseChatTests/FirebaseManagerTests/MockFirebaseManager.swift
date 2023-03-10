@@ -12,10 +12,11 @@ import Firebase
 @testable import SwiftUIFirebaseChat
 
 class MockFirebaseManager: NSObject, FirebaseServices {
+    let mockFirebaseAuth = MockFirebaseAuth()
+    
     func creatingNewAccount_combine(email: String, password: String) -> Future<Bool, Error> {
         Future { promise in
-            let mockFirebaseAuth = MockFirebaseAuth()
-            mockFirebaseAuth.createUser(withEmail: email, password: password) { dataResult in
+            self.mockFirebaseAuth.createUser(withEmail: email, password: password) { dataResult in
                 switch dataResult {
                 case .success(_, _):
                     promise(.success(true))
@@ -30,8 +31,7 @@ class MockFirebaseManager: NSObject, FirebaseServices {
     
     func login_combine(email: String, password: String) -> Future<Bool, Error> {
         Future { promise in
-            let mockFirebaseAuth = MockFirebaseAuth()
-            mockFirebaseAuth.signIn(withEmail: email, password: password) { dataResult in
+            self.mockFirebaseAuth.signIn(withEmail: email, password: password) { dataResult in
                 switch dataResult {
                 case .success(_, _):
                     promise(.success(true))

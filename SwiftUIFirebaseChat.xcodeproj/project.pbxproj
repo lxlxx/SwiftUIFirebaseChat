@@ -12,6 +12,7 @@
 		0E0E083E29B4BB6700137888 /* MockFirebaseAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */; };
 		0E0E084229B8B3F900137888 /* UserAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E084129B8B3F900137888 /* UserAvatarView.swift */; };
 		0E0E084529B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E084429B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift */; };
+		0E0E084729BB2F3000137888 /* FirebaseManagerDI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0E084629BB2F3000137888 /* FirebaseManagerDI.swift */; };
 		0E20F22027653CF100AEF87E /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F21F27653CF000AEF87E /* ImagePicker.swift */; };
 		0E20F2222765552700AEF87E /* Indicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E20F2212765552700AEF87E /* Indicator.swift */; };
 		0E64859328F93621004A6413 /* LoginAndRegistration_LBTA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */; };
@@ -77,6 +78,7 @@
 		0E0E083D29B4BB6700137888 /* MockFirebaseAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFirebaseAuth.swift; sourceTree = "<group>"; };
 		0E0E084129B8B3F900137888 /* UserAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAvatarView.swift; sourceTree = "<group>"; };
 		0E0E084429B8B7E600137888 /* LoginAndRegistration_ViewModel_Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistration_ViewModel_Tests.swift; sourceTree = "<group>"; };
+		0E0E084629BB2F3000137888 /* FirebaseManagerDI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManagerDI.swift; sourceTree = "<group>"; };
 		0E20F21F27653CF000AEF87E /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		0E20F2212765552700AEF87E /* Indicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Indicator.swift; sourceTree = "<group>"; };
 		0E64859228F93621004A6413 /* LoginAndRegistration_LBTA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginAndRegistration_LBTA.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 			children = (
 				0E64859828FBC798004A6413 /* FirebaseManager.swift */,
 				0E0E083929B2073800137888 /* FirebaseServices.swift */,
+				0E0E084629BB2F3000137888 /* FirebaseManagerDI.swift */,
 			);
 			path = Firebase;
 			sourceTree = "<group>";
@@ -505,6 +508,7 @@
 				0E0E084229B8B3F900137888 /* UserAvatarView.swift in Sources */,
 				0E8913EA276A38E6003B03F2 /* GlobalString.swift in Sources */,
 				0E20F22027653CF100AEF87E /* ImagePicker.swift in Sources */,
+				0E0E084729BB2F3000137888 /* FirebaseManagerDI.swift in Sources */,
 				0EF809092994EBE500177C2F /* Extensions.swift in Sources */,
 				0E64859528FA867D004A6413 /* ImagePicker_LBTA.swift in Sources */,
 				0E8913E8276A2858003B03F2 /* MessageView.swift in Sources */,

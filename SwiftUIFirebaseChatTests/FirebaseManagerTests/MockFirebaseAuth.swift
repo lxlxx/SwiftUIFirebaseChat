@@ -110,7 +110,8 @@ class MockFirebaseAuth {
         
         // Test case for incorrect email
         if (users[email] == nil) {
-            let error = NSError(domain: "", code: 17008, userInfo: [NSLocalizedDescriptionKey: "Failed to login user The password is invalid or the user does not have a password"])
+//            let error = NSError(domain: "", code: 17008, userInfo: [NSLocalizedDescriptionKey: "Failed to login user The password is invalid or the user does not have a password"])
+            let error = "Failed to login user The password is invalid or the user does not have a password"
             completion(DataResult((nil, error), status: 400))
             return
         }
