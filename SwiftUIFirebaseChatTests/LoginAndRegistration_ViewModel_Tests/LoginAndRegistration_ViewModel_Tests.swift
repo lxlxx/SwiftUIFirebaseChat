@@ -31,22 +31,32 @@ final class LoginAndRegistration_ViewModel_Tests: XCTestCase {
         let vm = LoginAndRegistration_LBTA_ViewModel(firebaseServices: mockFirebaseManager)
         let incorrent_email = "incorrent_email@example.com"
         
+        // When
         let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
         vm.email = incorrent_email
         vm.password = test_pw
         vm.login()
         
+        // Then
         XCTAssertEqual(vm.programViewEnabled, false)
-        XCTAssertEqual(vm.statusMessage, "Failed to login user The password is invalid or the user does not have a password")
+        XCTAssertEqual(vm.statusMessage, "Failed to login user There is no user record corresponding to this ifentifier. The user may have been deleted")
         
     }
     
     func test_LoginAndRegistration_LBTA_ViewModel_login_Failed_incorrect_password() throws {
         // Given
-        
-        let test_email = "testuser@example.com"
+        let vm = LoginAndRegistration_LBTA_ViewModel(firebaseServices: mockFirebaseManager)
         let incorrent_pw = "incorrent"
         
+        // When
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        vm.email = test_email
+        vm.password = incorrent_pw
+        vm.login()
+        
+        // Then
+        XCTAssertEqual(vm.programViewEnabled, false)
+        XCTAssertEqual(vm.statusMessage, "Failed to login user The password is invalid or the user does not have a password")
         
     }
     
@@ -56,7 +66,24 @@ final class LoginAndRegistration_ViewModel_Tests: XCTestCase {
         let empty_email = ""
         let empty_pw = ""
         
+        // When
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        vm.email = test_email
+        vm.password = empty_pw
+        vm.login()
         
+        // Then
+        XCTAssertEqual(vm.programViewEnabled, false)
+        XCTAssertEqual(vm.statusMessage, "Please enter an email and password.")
+        
+        // When
+        vm.email = empty_email
+        vm.password = test_pw
+        vm.login()
+        
+        // Then
+        XCTAssertEqual(vm.programViewEnabled, false)
+        XCTAssertEqual(vm.statusMessage, "Please enter an email and password.")
     }
     
     func test_LoginAndRegistration_LBTA_ViewModel_login_Failed_network_error() throws {
@@ -64,7 +91,15 @@ final class LoginAndRegistration_ViewModel_Tests: XCTestCase {
         let vm = LoginAndRegistration_LBTA_ViewModel(firebaseServices: mockFirebaseManager)
         let network_error = "networkerror@example.com"
         
+        // When
+        let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        vm.email = network_error
+        vm.password = test_pw
+        vm.login()
         
+        // Then
+        XCTAssertEqual(vm.programViewEnabled, false)
+        XCTAssertEqual(vm.statusMessage, "The Internet connection appears to be offline.")
     }
     
     func test_LoginAndRegistration_LBTA_ViewModel_login_Success() throws {
@@ -75,10 +110,10 @@ final class LoginAndRegistration_ViewModel_Tests: XCTestCase {
         let _ = mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
         
         // When
-        mockFirebaseManager.creatingNewAccount_combine(email: test_email, password: test_pw)
+        mockFirebaseManager.login_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
-                case .failure(_): break
+                case .failure(_): XCTFail("Logic error")
                 default: break
                 }
             } receiveValue: { result in
@@ -87,6 +122,6 @@ final class LoginAndRegistration_ViewModel_Tests: XCTestCase {
             }
             .store(in: &cancellable)
         
-        // Then
+        
     }
 }

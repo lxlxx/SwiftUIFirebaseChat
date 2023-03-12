@@ -47,7 +47,7 @@ class LoginAndRegistration_LBTA_ViewModel: ObservableObject {
             .sink { [weak self] completion in
                 switch completion {
                 case let .failure(error):
-                    self?.statusMessage = String(describing: error)
+                    self?.statusMessage = String(describing: error.localizedDescription)
                     self?.programViewEnabled = false
                 default: break
                 }

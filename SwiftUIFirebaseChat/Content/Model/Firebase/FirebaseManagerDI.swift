@@ -32,7 +32,8 @@ class FirebaseManagerDI: NSObject, FirebaseServices {
             self.auth.signIn(withEmail: email, password: password) {
                 result, err in
                 if let err = err {
-                    promise(.failure("Failed to login user \(err.localizedDescription)"))
+                    let error = NSError(domain: "", code: 00000, userInfo: [NSLocalizedDescriptionKey: "Failed to login user \(err.localizedDescription)"])
+                    promise(.failure(error))
                 }
                 promise(.success(true))
             }

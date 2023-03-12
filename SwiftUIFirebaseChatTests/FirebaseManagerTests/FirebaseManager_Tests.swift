@@ -100,7 +100,7 @@ final class FirebaseManager_Tests: XCTestCase {
                 switch completion {
                 case let .failure(error):
                     // Then
-                    XCTAssertTrue(error.localizedDescription.contains("Failed to login user The password is invalid or the user does not have a password"))
+                    XCTAssertTrue(error.localizedDescription.contains("Failed to login user There is no user record corresponding to this ifentifier. The user may have been deleted"))
                 default: break
                 }
             } receiveValue: { _ in
@@ -204,7 +204,7 @@ final class FirebaseManager_Tests: XCTestCase {
         mockFirebaseManager.login_combine(email: test_email, password: test_pw)
             .sink { completion in
                 switch completion {
-                case .failure(_): break
+                case .failure(_): XCTFail("Logic error")
                 default: break
                 }
             } receiveValue: { result in
