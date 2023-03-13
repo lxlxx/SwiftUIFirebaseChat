@@ -4,6 +4,17 @@
 //
 //  Created by yu fai on 27/11/2021.
 //
+//https://www.hackingwithswift.com/articles/83/how-to-test-your-user-interface-using-xcode
+
+//XCUITest: what is the definitive, locale-agnostic way to dismiss the (software) keyboard?
+//https://developer.apple.com/forums/thread/115713
+
+//https://www.appsloveworld.com/swift/100/7/how-to-hide-keyboard-in-swift-app-during-ui-testing
+
+//https://stackoverflow.com/questions/34684846/how-to-detect-if-keyboard-is-shown-in-xcode-ui-test
+
+//Unit Testing UITextField(s). Keyboard Type.
+//https://www.youtube.com/watch?v=0TUDDxCNp0A&ab_channel=SergeyKargopolov
 
 import XCTest
 
@@ -26,64 +37,22 @@ class SwiftUIFirebaseChatUITests: XCTestCase {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
-        
         let scrollViewsQuery = app.scrollViews
         let elementsQuery = scrollViewsQuery.otherElements
-        elementsQuery.textFields["Email"].tap()
         
-        let tKey = app/*@START_MENU_TOKEN@*/.keys["t"]/*[[".keyboards.keys[\"t\"]",".keys[\"t\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        tKey.tap()
+        let emailTextField = app.textFields["Email"]
+        let pwTextField = app.secureTextFields["Password"]
         
-        let eKey = app/*@START_MENU_TOKEN@*/.keys["e"]/*[[".keyboards.keys[\"e\"]",".keys[\"e\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        eKey.tap()
+        sleep(1)
+        emailTextField.tap()
+        emailTextField.typeText("testing@gmail.com")
         
-        let sKey = app/*@START_MENU_TOKEN@*/.keys["s"]/*[[".keyboards.keys[\"s\"]",".keys[\"s\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        sKey.tap()
-        
-        tKey.tap()
-        
-        let iKey = app/*@START_MENU_TOKEN@*/.keys["i"]/*[[".keyboards.keys[\"i\"]",".keys[\"i\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        iKey.tap()
-        
-        let nKey = app/*@START_MENU_TOKEN@*/.keys["n"]/*[[".keyboards.keys[\"n\"]",".keys[\"n\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        nKey.tap()
-        
-        let gKey = app/*@START_MENU_TOKEN@*/.keys["g"]/*[[".keyboards.keys[\"g\"]",".keys[\"g\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        gKey.tap()
-        
-        let key = app/*@START_MENU_TOKEN@*/.keys["@"]/*[[".keyboards.keys[\"@\"]",".keys[\"@\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        key.tap()
-        gKey.tap()
-        
-        let mKey = app/*@START_MENU_TOKEN@*/.keys["m"]/*[[".keyboards.keys[\"m\"]",".keys[\"m\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        mKey.tap()
-        
-        let aKey = app/*@START_MENU_TOKEN@*/.keys["a"]/*[[".keyboards.keys[\"a\"]",".keys[\"a\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        aKey.tap()
-        iKey.tap()
-        
-        let lKey = app/*@START_MENU_TOKEN@*/.keys["l"]/*[[".keyboards.keys[\"l\"]",".keys[\"l\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        lKey.tap()
-        
-        let key2 = app/*@START_MENU_TOKEN@*/.keys["."]/*[[".keyboards.keys[\".\"]",".keys[\".\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        key2.tap()
-        
-        let cKey = app/*@START_MENU_TOKEN@*/.keys["c"]/*[[".keyboards.keys[\"c\"]",".keys[\"c\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        cKey.tap()
-        
-        let oKey = app/*@START_MENU_TOKEN@*/.keys["o"]/*[[".keyboards.keys[\"o\"]",".keys[\"o\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/
-        oKey.tap()
-        mKey.tap()
-        
-        elementsQuery.secureTextFields["Password"].tap()
-        tKey.tap()
-        eKey.tap()
-        sKey.tap()
-        tKey.tap()
-        
-        sleep(5)
+        pwTextField.tap()
+        pwTextField.typeText("test")
+
+        sleep(2)
         scrollViewsQuery.otherElements.containing(.textField, identifier:"Email").children(matching: .button)["Login"].tap()
-        
+
         let result = app.staticTexts["Failed to login user There is no user record corresponding to this identifier. The user may have been deleted."]
         sleep(5)
         XCTAssertTrue(result.exists)
